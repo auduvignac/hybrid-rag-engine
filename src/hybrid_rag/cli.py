@@ -36,7 +36,7 @@ def _node_to_dict(node: DocumentNode) -> dict[str, Any]:
         "title": node.title,
         "level": node.level,
         "content": node.content,
-        "node_type": node.node_type,
+        "node_type": node.node_type.value,
         "metadata": node.metadata,
         "children": [_node_to_dict(child) for child in node.children],
     }
@@ -78,7 +78,7 @@ def _print_summary(document: ParsedDocument) -> None:
 
 def _print_node(node: DocumentNode, indent: int = 0) -> None:
     prefix = "  " * indent
-    print(f"{prefix}- [{node.node_type}] {node.title}")
+    print(f"{prefix}- [{node.node_type.value}] {node.title}")
     if citations := node.metadata.get("citations", []):
         print(f"{prefix}  citations: {', '.join(citations)}")
     if node.content:
@@ -105,4 +105,3 @@ def main() -> int:
         _print_summary(document)
 
     return 0
-

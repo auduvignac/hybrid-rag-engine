@@ -2,6 +2,7 @@ from hybrid_rag import BibliographicReference as RootBibliographicReference
 from hybrid_rag import DocumentNode as RootDocumentNode
 from hybrid_rag import ParsedDocument as RootParsedDocument
 from hybrid_rag import ParsingService as RootParsingService
+from hybrid_rag.cli import _node_to_dict
 from hybrid_rag.domain import BibliographicReference, DocumentNode, NodeType, ParsedDocument
 from hybrid_rag.parsing import ParserFactory, ParsingService
 from hybrid_rag.parsing.parsers import LatexParser, PdfParser
@@ -49,3 +50,11 @@ def test_parsed_document_merges_bibliographic_reference_updates() -> None:
     assert reference.year == "2024"
     assert reference.entry_type == "online"
     assert reference.raw_entry == {"url": "https://example.org"}
+
+
+def test_cli_serializes_node_type_as_enum_value() -> None:
+    node = DocumentNode(title="Parent", level=1, node_type=NodeType.SECTION)
+
+    payload = _node_to_dict(node)
+
+    assert payload["node_type"] == "section"
