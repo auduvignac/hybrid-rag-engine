@@ -15,7 +15,7 @@ class DocumentNode:
     title: str
     level: int
     content: str = ""
-    node_type: str = NodeType.PART
+    node_type: NodeType = NodeType.PART
     metadata: dict[str, Any] = field(default_factory=dict)
     children: list["DocumentNode"] = field(default_factory=list)
 
