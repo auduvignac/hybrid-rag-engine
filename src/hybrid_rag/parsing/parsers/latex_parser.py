@@ -46,6 +46,15 @@ class LatexParser(BaseParser):
         "paragraph": 5,
         "subparagraph": 6,
     }
+    _NODE_TYPES = {
+        "part": NodeType.PART,
+        "chapter": NodeType.CHAPTER,
+        "section": NodeType.SECTION,
+        "subsection": NodeType.SUBSECTION,
+        "subsubsection": NodeType.SUBSUBSECTION,
+        "paragraph": NodeType.PARAGRAPH,
+        "subparagraph": NodeType.SUBPARAGRAPH,
+    }
 
     @classmethod
     def can_handle(cls, source: Path) -> bool:
@@ -88,6 +97,11 @@ class LatexParser(BaseParser):
             section_command = match.group("command")
             title = self._clean_inline_text(match.group("title"))
             level = self._LEVELS[section_command]
+            node_type = self._NODE_TYPES.get(section_command)
+            if node_type is None:
+                raise ValueError(
+                    f"Unsupported LaTeX section command '{section_command}'."
+                )
             body_start = match.end()
             body_end = (
                 matches[index + 1].start()
@@ -115,7 +129,7 @@ class LatexParser(BaseParser):
                 level=level,
                 content=body,
                 metadata=metadata,
-                node_type=NodeType(section_command),
+                node_type=node_type,
             )
             for citation_key in citations:
                 document.add_bibliographic_reference(

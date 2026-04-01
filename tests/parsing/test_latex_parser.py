@@ -210,6 +210,21 @@ def test_latex_parser_deduplicates_bibliography_resource_paths(
     assert bibliography_paths == [str(resource_path.resolve())]
 
 
+def test_latex_parser_raises_for_section_command_without_node_type_mapping(
+    tmp_path: Path, monkeypatch
+) -> None:
+    parser = LatexParser()
+    source = tmp_path / "CR_mapping.tex"
+    source.write_text("\\section{Introduction}\nTexte.\n", encoding="utf-8")
+
+    monkeypatch.delitem(parser._NODE_TYPES, "section", raising=False)
+
+    with pytest.raises(
+        ValueError, match="Unsupported LaTeX section command 'section'."
+    ):
+        parser.parse(source)
+
+
 def test_latex_parser_skips_citation_links_without_clean_text() -> None:
     parser = LatexParser()
 
