@@ -127,6 +127,10 @@ def test_default_factory_and_service_support_tex_and_reject_unknown_sources() ->
         == "LatexParser"
     )
     assert (
+        factory.create_parser(Path("sample.pdf")).__class__.__name__
+        == "PdfParser"
+    )
+    assert (
         ParsingService()
         .parse(Path("tests/parsing/fixtures/sample_cr.tex"))
         .document_type
