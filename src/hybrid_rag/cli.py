@@ -96,8 +96,8 @@ def _print_node(node: DocumentNode, indent: int = 0) -> None:
         _print_node(child, indent + 1)
 
 
-def main() -> int:
-    args = _build_parser().parse_args()
+def main(argv: list[str] | None = None) -> int:
+    args = _build_parser().parse_args(argv)
 
     try:
         document = parse_document(args.source)
