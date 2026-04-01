@@ -1,7 +1,7 @@
 # Parsing Architecture
 
 The parsing layer converts source documents into a normalized, provenance-friendly
-object model before any chunking or retrieval concern is introduced.
+object model before any chunking or retrieval concerns are introduced.
 
 ## Why It Exists
 
@@ -46,7 +46,7 @@ ParsedDocument(
         DocumentNode(
             title="Introduction",
             level=1,
-            content="Ce document presente un prototype de parsing.",
+            content="Ce document présente un prototype de parsing.",
             node_type="section",
             metadata={},
             children=[],
