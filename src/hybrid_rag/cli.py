@@ -1,4 +1,4 @@
-"""CLI entry point to run the parsing pipeline on a source document."""
+"""Command-line interface for the hybrid RAG parser."""
 
 from __future__ import annotations
 
@@ -7,12 +7,6 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
-
-PROJECT_ROOT = Path(__file__).resolve().parent
-SRC_DIR = PROJECT_ROOT / "src"
-
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
 
 from hybrid_rag.domain.documents import (
     BibliographicReference,
@@ -26,7 +20,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the hybrid-rag document parsing pipeline on a source file."
     )
-    parser.add_argument("source", type=Path, help="Path to the source document to parse.")
+    parser.add_argument(
+        "source", type=Path, help="Path to the source document to parse."
+    )
     parser.add_argument(
         "--json",
         action="store_true",
@@ -46,6 +42,16 @@ def _node_to_dict(node: DocumentNode) -> dict[str, Any]:
     }
 
 
+def _reference_to_dict(reference: BibliographicReference) -> dict[str, Any]:
+    return {
+        "title": reference.title,
+        "authors": reference.authors,
+        "year": reference.year,
+        "entry_type": reference.entry_type,
+        "raw_entry": reference.raw_entry,
+    }
+
+
 def _document_to_dict(document: ParsedDocument) -> dict[str, Any]:
     return {
         "source_path": document.source_path,
@@ -57,16 +63,6 @@ def _document_to_dict(document: ParsedDocument) -> dict[str, Any]:
             for key, reference in document.bibliography.items()
         },
         "root_nodes": [_node_to_dict(node) for node in document.root_nodes],
-    }
-
-
-def _reference_to_dict(reference: BibliographicReference) -> dict[str, Any]:
-    return {
-        "title": reference.title,
-        "authors": reference.authors,
-        "year": reference.year,
-        "entry_type": reference.entry_type,
-        "raw_entry": reference.raw_entry,
     }
 
 
@@ -85,10 +81,10 @@ def _print_node(node: DocumentNode, indent: int = 0) -> None:
     print(f"{prefix}- [{node.node_type}] {node.title}")
     if citations := node.metadata.get("citations", []):
         print(f"{prefix}  citations: {', '.join(citations)}")
-        
     if node.content:
-        preview = node.content[:200].replace("\n", " ") + ("..." if len(node.content) > 200 else "")
-        print(f"{prefix}  content: {preview}")
+        preview = node.content[:200].replace("\n", " ")
+        suffix = "..." if len(node.content) > 200 else ""
+        print(f"{prefix}  content: {preview}{suffix}")
     for child in node.children:
         _print_node(child, indent + 1)
 
@@ -110,6 +106,3 @@ def main() -> int:
 
     return 0
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())
