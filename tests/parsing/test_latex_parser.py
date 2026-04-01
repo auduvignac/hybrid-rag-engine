@@ -165,7 +165,7 @@ def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_con
 
 
 def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None:
-    fixture = Path("tests/parsing/fixtures/CR_20_11_2025.tex")
+    fixture = Path("tests/parsing/fixtures/CR.tex")
 
     document = LatexParser().parse(fixture)
 
