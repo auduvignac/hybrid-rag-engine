@@ -81,7 +81,7 @@ def test_base_parser_template_method_uses_default_normalize_and_post_process() -
 
 def test_registry_resolves_by_extension_and_can_handle_fallback() -> None:
     registry = ParserRegistry()
-    registry.register(RecordingParser, ["dummy"])
+    registry.register(RecordingParser, [".DUMMY"])
     registry.register(FallbackParser, [".fallback"])
     registry.register(FallbackParser, [".other"])
 

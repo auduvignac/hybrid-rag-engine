@@ -56,4 +56,5 @@ class ParserRegistry:
 
     @staticmethod
     def _normalize_extension(extension: str) -> str:
-        return extension if extension.startswith(".") else f".{extension}"
+        normalized = extension if extension.startswith(".") else f".{extension}"
+        return normalized.lower()
