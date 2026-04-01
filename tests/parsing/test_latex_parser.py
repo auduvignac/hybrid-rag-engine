@@ -191,6 +191,25 @@ def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None
     )
 
 
+def test_latex_parser_deduplicates_bibliography_resource_paths(
+    tmp_path: Path,
+) -> None:
+    parser = LatexParser()
+    source = tmp_path / "CR.tex"
+    bibliography_dir = tmp_path / "bibliographies"
+    bibliography_dir.mkdir()
+    resource_path = bibliography_dir / "articles.bib"
+    resource_path.write_text("", encoding="utf-8")
+    content = (
+        "\\addbibresource{bibliographies/articles.bib}\n"
+        "\\addbibresource{bibliographies/articles.bib}\n"
+    )
+
+    bibliography_paths = parser._extract_bibliography_paths(content, source)
+
+    assert bibliography_paths == [str(resource_path.resolve())]
+
+
 def test_latex_parser_skips_citation_links_without_clean_text() -> None:
     parser = LatexParser()
 
