@@ -28,6 +28,7 @@ def test_latex_parser_builds_expected_hierarchy() -> None:
     assert section.metadata["label_value"] == "sec:intro"
     assert section.metadata["citations"] == []
     assert section.metadata["citation_links"] == []
+    assert document.bibliography == {}
 
     subsection = section.children[0]
     assert subsection.title == "Contexte"
@@ -146,6 +147,8 @@ def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_con
 
     section = document.root_nodes[0]
     assert section.metadata["citations"] == ["dupont2024", "martin2023"]
+    assert set(document.bibliography) == {"dupont2024", "martin2023"}
+    assert document.bibliography["dupont2024"].title is None
     assert section.metadata["citation_links"] == [
         {
             "start": 0,
@@ -159,6 +162,32 @@ def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_con
     assert "martin2023" not in section.content
 
 
+def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None:
+    fixture = Path("tests/parsing/fixtures/CR_20_11_2025.tex")
+
+    document = LatexParser().parse(fixture)
+
+    expected_paths = [
+        str((fixture.parent / "bibliographies/articles.bib").resolve()),
+        str((fixture.parent / "bibliographies/livres.bib").resolve()),
+        str((fixture.parent / "bibliographies/online.bib").resolve()),
+        str((fixture.parent / "bibliographies/rapports.bib").resolve()),
+    ]
+
+    assert "lefigaro2025munichdrones" in document.bibliography
+    assert "livreblanc2013defense" in document.bibliography
+    assert document.bibliography["lefigaro2025munichdrones"].title is not None
+    assert document.bibliography["lefigaro2025munichdrones"].entry_type == "online"
+    assert (
+        document.bibliography["lefigaro2025munichdrones"].raw_entry["journal"]
+        == "Le Figaro"
+    )
+    assert (
+        document.bibliography["roblesfernandez2023desinformation"].authors
+        == ["Manuel Robles Fernandez"]
+    )
+
+
 def test_latex_parser_skips_citation_links_without_clean_text() -> None:
     parser = LatexParser()
 
@@ -168,6 +197,27 @@ def test_latex_parser_skips_citation_links_without_clean_text() -> None:
     )
 
     assert citation_links == []
+
+
+def test_latex_parser_parses_bibliographic_entry_fields() -> None:
+    parser = LatexParser()
+
+    key, reference = parser._parse_bibliographic_entry(
+        "@online{dupont2024,\n"
+        "  author = {Jean Dupont and Marie Martin},\n"
+        '  title = "Titre Exemple",\n'
+        "  year = {2024},\n"
+        "  url = {https://example.org}\n"
+        "}",
+        Path("tests/parsing/fixtures/bibliographies/online.bib"),
+    )
+
+    assert key == "dupont2024"
+    assert reference.entry_type == "online"
+    assert reference.title == "Titre Exemple"
+    assert reference.authors == ["Jean Dupont", "Marie Martin"]
+    assert reference.year == "2024"
+    assert reference.raw_entry["url"] == "https://example.org"
 
 
 def test_latex_parser_falls_back_to_global_find_when_search_start_misses(
@@ -242,6 +292,7 @@ def test_latex_parser_extracts_one_citation_link_per_itemize_item(
 
     section = document.root_nodes[0]
     assert section.metadata["citations"] == ["dupont2024", "martin2023"]
+    assert set(document.bibliography) == {"dupont2024", "martin2023"}
     assert section.metadata["citation_links"] == [
         {
             "start": section.content.find("Premier point"),

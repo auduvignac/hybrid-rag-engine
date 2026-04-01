@@ -5,7 +5,11 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from hybrid_rag.domain.documents import DocumentNode, ParsedDocument
+from hybrid_rag.domain.documents import (
+    BibliographicReference,
+    DocumentNode,
+    ParsedDocument,
+)
 from hybrid_rag.domain.enums import NodeType
 from hybrid_rag.parsing.base import BaseParser
 
@@ -13,6 +17,7 @@ _SECTIONING_PATTERN = re.compile(
     r"\\(?P<command>part|chapter|section|subsection|subsubsection|paragraph|subparagraph)\*?\{(?P<title>[^{}]+)\}",
     re.MULTILINE,
 )
+_BIB_RESOURCE_PATTERN = re.compile(r"\\addbibresource\{(?P<path>[^{}]+)\}")
 
 
 class LatexParser(BaseParser):
@@ -44,6 +49,11 @@ class LatexParser(BaseParser):
             document_type="latex",
             title=self._infer_document_title(content, source),
         )
+        bibliography_paths = self._extract_bibliography_paths(content, source)
+        for key, reference in self._load_bibliography_entries(
+            bibliography_paths
+        ).items():
+            document.add_bibliographic_reference(key, reference)
         matches = list(_SECTIONING_PATTERN.finditer(content))
 
         if not matches:
@@ -92,9 +102,148 @@ class LatexParser(BaseParser):
                 metadata=metadata,
                 node_type=NodeType(section_command),
             )
+            for citation_key in citations:
+                document.add_bibliographic_reference(
+                    citation_key, BibliographicReference()
+                )
             self._attach_node(document, stack, node)
 
         return document
+
+    def _extract_bibliography_paths(self, content: str, source: Path) -> list[str]:
+        bibliography_paths: list[str] = []
+        for match in _BIB_RESOURCE_PATTERN.finditer(content):
+            resolved_path = (source.parent / match.group("path")).resolve()
+            path_as_str = str(resolved_path)
+            if path_as_str not in bibliography_paths:
+                bibliography_paths.append(path_as_str)
+
+        return bibliography_paths
+
+    def _load_bibliography_entries(
+        self, bibliography_paths: list[str]
+    ) -> dict[str, BibliographicReference]:
+        references: dict[str, BibliographicReference] = {}
+        for bibliography_path in bibliography_paths:
+            path = Path(bibliography_path)
+            if not path.exists():
+                continue
+            references.update(self._parse_bib_file(path))
+
+        return references
+
+    def _parse_bib_file(self, path: Path) -> dict[str, BibliographicReference]:
+        content = path.read_text(encoding="utf-8")
+        entries: dict[str, BibliographicReference] = {}
+        index = 0
+
+        while index < len(content):
+            start = content.find("@", index)
+            if start == -1:
+                break
+
+            brace_start = content.find("{", start)
+            if brace_start == -1:
+                break
+
+            depth = 1
+            cursor = brace_start + 1
+            while cursor < len(content) and depth > 0:
+                character = content[cursor]
+                if character == "{":
+                    depth += 1
+                elif character == "}":
+                    depth -= 1
+                cursor += 1
+
+            entry_text = content[start:cursor].strip()
+            if entry_text:
+                key, reference = self._parse_bibliographic_entry(entry_text, path)
+                entries[key] = reference
+            index = cursor
+
+        return entries
+
+    def _parse_bibliographic_entry(
+        self, entry_text: str, path: Path
+    ) -> tuple[str, BibliographicReference]:
+        header_match = re.match(
+            r"@(?P<entry_type>\w+)\{(?P<key>[^,]+),(?P<body>.*)\}\s*$",
+            entry_text,
+            re.DOTALL,
+        )
+        if header_match is None:
+            raise ValueError(f"Invalid bibliographic entry in '{path}'.")
+
+        entry_type = header_match.group("entry_type").strip()
+        key = header_match.group("key").strip()
+        raw_fields = self._parse_bib_fields(header_match.group("body"))
+        author_value = raw_fields.get("author", "")
+        authors = [
+            author.strip()
+            for author in author_value.split(" and ")
+            if author.strip()
+        ]
+
+        return key, BibliographicReference(
+            title=raw_fields.get("title"),
+            authors=authors,
+            year=raw_fields.get("year") or raw_fields.get("date"),
+            entry_type=entry_type,
+            raw_entry=raw_fields,
+        )
+
+    def _parse_bib_fields(self, body: str) -> dict[str, str]:
+        fields: dict[str, str] = {}
+        for chunk in self._split_bib_fields(body):
+            if "=" not in chunk:
+                continue
+            name, value = chunk.split("=", 1)
+            normalized_name = name.strip().lower()
+            normalized_value = self._normalize_bib_value(value)
+            if normalized_name:
+                fields[normalized_name] = normalized_value
+
+        return fields
+
+    def _split_bib_fields(self, body: str) -> list[str]:
+        chunks: list[str] = []
+        current: list[str] = []
+        brace_depth = 0
+        in_quotes = False
+
+        for character in body:
+            if character == '"' and brace_depth == 0:
+                in_quotes = not in_quotes
+            elif character == "{":
+                brace_depth += 1
+            elif character == "}":
+                brace_depth = max(0, brace_depth - 1)
+
+            if character == "," and brace_depth == 0 and not in_quotes:
+                chunk = "".join(current).strip()
+                if chunk:
+                    chunks.append(chunk)
+                current = []
+                continue
+
+            current.append(character)
+
+        tail = "".join(current).strip().rstrip(",")
+        if tail:
+            chunks.append(tail)
+
+        return chunks
+
+    def _normalize_bib_value(self, value: str) -> str:
+        normalized = value.strip().rstrip(",").strip()
+        while (
+            len(normalized) >= 2
+            and ((normalized[0] == "{" and normalized[-1] == "}") or (normalized[0] == '"' and normalized[-1] == '"'))
+        ):
+            normalized = normalized[1:-1].strip()
+
+        return re.sub(r"\s+", " ", normalized)
 
     def _post_process(self, document: ParsedDocument) -> None:
         if document.title is None and document.root_nodes:
