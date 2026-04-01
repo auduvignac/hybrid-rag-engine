@@ -180,13 +180,6 @@ def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None
 
     document = LatexParser().parse(fixture)
 
-    expected_paths = [
-        str((fixture.parent / "bibliographies/articles.bib").resolve()),
-        str((fixture.parent / "bibliographies/livres.bib").resolve()),
-        str((fixture.parent / "bibliographies/online.bib").resolve()),
-        str((fixture.parent / "bibliographies/rapports.bib").resolve()),
-    ]
-
     assert "lefigaro2025munichdrones" in document.bibliography
     assert "livreblanc2013defense" in document.bibliography
     assert document.bibliography["lefigaro2025munichdrones"].title is not None
