@@ -18,6 +18,7 @@ def test_latex_parser_builds_expected_hierarchy() -> None:
     assert document.title == "Compte Rendu Projet"
     assert len(document.root_nodes) == 2
     assert parser.can_handle(fixture) is True
+    assert parser.can_handle(Path("REPORT.TEX")) is True
     assert parser.can_handle(Path("sample.pdf")) is False
 
     section = document.root_nodes[0]
