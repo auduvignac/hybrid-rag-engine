@@ -101,6 +101,9 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         document = parse_document(args.source)
+    except KeyboardInterrupt:
+        print("Parsing cancelled by user.", file=sys.stderr)
+        return 130
     except Exception as error:
         print(f"Parsing failed: {error}", file=sys.stderr)
         if args.debug:

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import hybrid_rag.cli as cli_module
 from hybrid_rag.cli import _document_to_dict, main
 from hybrid_rag.domain import BibliographicReference, DocumentNode, NodeType, ParsedDocument
 
@@ -162,3 +163,16 @@ def test_cli_main_debug_mode_shows_traceback(capsys) -> None:
 
     assert exit_code != 0
     assert "Traceback" in captured.err
+
+
+def test_cli_main_keyboard_interrupt_returns_130(monkeypatch, capsys) -> None:
+    def raise_interrupt(_source):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(cli_module, "parse_document", raise_interrupt)
+
+    exit_code = main(["missing.tex"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 130
+    assert "Parsing cancelled by user." in captured.err
