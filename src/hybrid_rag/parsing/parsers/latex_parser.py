@@ -72,11 +72,13 @@ class LatexParser(BaseParser):
             current_content = content[body_start:body_end]
             label_value = re.search(r"\\label\{([^{}]*)\}", current_content)
             label_value = label_value[1] if label_value else ""
+            citations = self._extract_citations(current_content)
             metadata = {
                 "source_file": source.name,
                 "sectioning_level": level,
                 "title": title,
                 "label_value": label_value,
+                "citations": citations,
             }
             body = self._clean_text(current_content)
             node = DocumentNode(
@@ -148,6 +150,7 @@ class LatexParser(BaseParser):
 
     def _clean_inline_text(self, text: str) -> str:
         text = re.sub(r"\\(textbf|emph)\{([^{}]*)\}", r"\2", text)
+        text = re.sub(r"\\footcite\{[^{}]*\}", "", text)
         text = re.sub(r"\\label\{[^{}]*\}", "", text)
         text = re.sub(r"\\(?:item|noindent)\b", "", text)
         text = re.sub(
@@ -157,3 +160,14 @@ class LatexParser(BaseParser):
         text = text.replace(r"\%", "%")
         text = re.sub(r"[ \t]+", " ", text)
         return text.strip()
+
+    def _extract_citations(self, text: str) -> list[str]:
+        citation_matches = re.findall(r"\\footcite\{([^{}]*)\}", text)
+        citations: list[str] = []
+        for match in citation_matches:
+            for raw_key in match.split(","):
+                key = raw_key.strip()
+                if key and key not in citations:
+                    citations.append(key)
+
+        return citations

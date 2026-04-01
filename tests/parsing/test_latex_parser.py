@@ -89,10 +89,14 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
     )
     assert (
         parser._clean_inline_text(
-            r"\noindent \textbf{Texte} \emph{important} \label{sec:test} \unknown{valeur}"
+            r"\noindent \textbf{Texte} \emph{important} \footcite{source2025} \label{sec:test} \unknown{valeur}"
         )
         == "Texte important valeur"
     )
+    assert parser._extract_citations(r"\footcite{source2025, other2024}\footcite{source2025}") == [
+        "source2025",
+        "other2024",
+    ]
     assert (
         parser._clean_text(
             "\\begin{itemize}\n\\item Premier point\n\\item Deuxieme point\n\\end{itemize}"
@@ -100,3 +104,23 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
         == "- Premier point\n- Deuxieme point"
     )
     assert parser._clean_text("Ligne 1\n\n\n Ligne 2") == "Ligne 1\n\n Ligne 2"
+
+
+def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_content(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "CR_citations.tex"
+    source.write_text(
+        "\\section{Introduction}\n"
+        "Texte avec citation\\footcite{dupont2024} et citations multiples"
+        "\\footcite{martin2023, dupont2024}.\n",
+        encoding="utf-8",
+    )
+
+    document = LatexParser().parse(source)
+
+    section = document.root_nodes[0]
+    assert section.metadata["citations"] == ["dupont2024", "martin2023"]
+    assert "footcite" not in section.content
+    assert "dupont2024" not in section.content
+    assert "martin2023" not in section.content
