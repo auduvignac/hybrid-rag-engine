@@ -1,10 +1,10 @@
 from hybrid_rag import BibliographicReference as RootBibliographicReference
 from hybrid_rag import DocumentNode as RootDocumentNode
 from hybrid_rag import ParsedDocument as RootParsedDocument
-from hybrid_rag import ParsingService as RootParsingService
+from hybrid_rag import parse_document as root_parse_document
 from hybrid_rag.cli import _node_to_dict
 from hybrid_rag.domain import BibliographicReference, DocumentNode, NodeType, ParsedDocument
-from hybrid_rag.parsing import ParserFactory, ParsingService
+from hybrid_rag.parsing import ParserFactory, parse_document
 from hybrid_rag.parsing.parsers import LatexParser, PdfParser
 
 
@@ -24,7 +24,7 @@ def test_package_exports_and_domain_helpers() -> None:
     assert RootBibliographicReference is BibliographicReference
     assert RootDocumentNode is DocumentNode
     assert RootParsedDocument is ParsedDocument
-    assert RootParsingService is ParsingService
+    assert root_parse_document is parse_document
     assert ParserFactory.__name__ == "ParserFactory"
     assert LatexParser.__name__ == "LatexParser"
     assert PdfParser.__name__ == "PdfParser"

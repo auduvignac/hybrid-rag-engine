@@ -6,7 +6,7 @@ from hybrid_rag.domain.documents import ParsedDocument
 from hybrid_rag.parsing.base import BaseParser
 from hybrid_rag.parsing.factory import ParserFactory
 from hybrid_rag.parsing.registry import ParserRegistry
-from hybrid_rag.parsing.service import ParsingService
+from hybrid_rag.parsing.service import parse_document
 
 
 class RejectingParser(BaseParser):
@@ -115,10 +115,9 @@ def test_factory_and_service_can_use_custom_registry(tmp_path: Path) -> None:
     registry.register(RecordingParser, [".dummy"])
 
     factory = ParserFactory(registry=registry)
-    service = ParsingService(factory=factory)
 
     parser = factory.create_parser(source)
-    document = service.parse(source)
+    document = parse_document(source, factory=factory)
 
     assert isinstance(parser, RecordingParser)
     assert document.document_type == "dummy"
@@ -138,8 +137,7 @@ def test_default_factory_and_service_support_tex_and_reject_unknown_sources() ->
         == "PdfParser"
     )
     assert (
-        ParsingService()
-        .parse(Path("tests/parsing/fixtures/sample_cr.tex"))
+        parse_document(Path("tests/parsing/fixtures/sample_cr.tex"))
         .document_type
         == "latex"
     )

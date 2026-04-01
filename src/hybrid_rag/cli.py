@@ -13,7 +13,7 @@ from hybrid_rag.domain.documents import (
     DocumentNode,
     ParsedDocument,
 )
-from hybrid_rag.parsing.service import ParsingService
+from hybrid_rag.parsing.service import parse_document
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -91,10 +91,9 @@ def _print_node(node: DocumentNode, indent: int = 0) -> None:
 
 def main() -> int:
     args = _build_parser().parse_args()
-    service = ParsingService()
 
     try:
-        document = service.parse(args.source)
+        document = parse_document(args.source)
     except Exception as error:
         print(f"Parsing failed: {error}", file=sys.stderr)
         return 1
