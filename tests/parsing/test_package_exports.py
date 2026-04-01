@@ -27,3 +27,25 @@ def test_package_exports_and_domain_helpers() -> None:
     assert ParserFactory.__name__ == "ParserFactory"
     assert LatexParser.__name__ == "LatexParser"
     assert PdfParser.__name__ == "PdfParser"
+
+
+def test_parsed_document_merges_bibliographic_reference_updates() -> None:
+    document = ParsedDocument(source_path="source.tex", document_type="latex")
+    document.add_bibliographic_reference("dupont2024", BibliographicReference())
+    document.add_bibliographic_reference(
+        "dupont2024",
+        BibliographicReference(
+            title="Titre",
+            authors=["Jean Dupont"],
+            year="2024",
+            entry_type="online",
+            raw_entry={"url": "https://example.org"},
+        ),
+    )
+
+    reference = document.bibliography["dupont2024"]
+    assert reference.title == "Titre"
+    assert reference.authors == ["Jean Dupont"]
+    assert reference.year == "2024"
+    assert reference.entry_type == "online"
+    assert reference.raw_entry == {"url": "https://example.org"}

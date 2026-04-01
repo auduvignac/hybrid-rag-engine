@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from hybrid_rag.domain.documents import DocumentNode, ParsedDocument
 from hybrid_rag.domain.enums import NodeType
 from hybrid_rag.parsing.parsers import LatexParser
@@ -218,6 +220,58 @@ def test_latex_parser_parses_bibliographic_entry_fields() -> None:
     assert reference.authors == ["Jean Dupont", "Marie Martin"]
     assert reference.year == "2024"
     assert reference.raw_entry["url"] == "https://example.org"
+
+
+def test_latex_parser_skips_missing_bibliography_paths(tmp_path: Path) -> None:
+    parser = LatexParser()
+
+    references = parser._load_bibliography_entries(
+        [str(tmp_path / "missing.bib")]
+    )
+
+    assert references == {}
+
+
+def test_latex_parser_returns_empty_entries_for_bib_file_without_entries(
+    tmp_path: Path,
+) -> None:
+    parser = LatexParser()
+    bib_file = tmp_path / "empty.bib"
+    bib_file.write_text("This file has no bib entries.", encoding="utf-8")
+
+    references = parser._parse_bib_file(bib_file)
+
+    assert references == {}
+
+
+def test_latex_parser_returns_empty_entries_for_bib_file_without_opening_brace(
+    tmp_path: Path,
+) -> None:
+    parser = LatexParser()
+    bib_file = tmp_path / "invalid_header.bib"
+    bib_file.write_text("@article", encoding="utf-8")
+
+    references = parser._parse_bib_file(bib_file)
+
+    assert references == {}
+
+
+def test_latex_parser_raises_for_invalid_bibliographic_entry() -> None:
+    parser = LatexParser()
+    path = Path("tests/parsing/fixtures/bibliographies/online.bib")
+
+    with pytest.raises(ValueError, match="Invalid bibliographic entry"):
+        parser._parse_bibliographic_entry("@online invalid", path)
+
+
+def test_latex_parser_ignores_bib_chunks_without_assignment() -> None:
+    parser = LatexParser()
+
+    fields = parser._parse_bib_fields(
+        "title = {Titre Exemple}, invalid chunk, year = {2024}"
+    )
+
+    assert fields == {"title": "Titre Exemple", "year": "2024"}
 
 
 def test_latex_parser_falls_back_to_global_find_when_search_start_misses(
