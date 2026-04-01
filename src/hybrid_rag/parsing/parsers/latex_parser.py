@@ -157,8 +157,7 @@ class LatexParser(BaseParser):
                     depth -= 1
                 cursor += 1
 
-            entry_text = content[start:cursor].strip()
-            if entry_text:
+            if entry_text := content[start:cursor].strip():
                 key, reference = self._parse_bibliographic_entry(entry_text, path)
                 entries[key] = reference
             index = cursor
@@ -222,27 +221,27 @@ class LatexParser(BaseParser):
                 brace_depth = max(0, brace_depth - 1)
 
             if character == "," and brace_depth == 0 and not in_quotes:
-                chunk = "".join(current).strip()
-                if chunk:
+                if chunk := "".join(current).strip():
                     chunks.append(chunk)
                 current = []
                 continue
 
             current.append(character)
 
-        tail = "".join(current).strip().rstrip(",")
-        if tail:
+        if tail := "".join(current).strip().rstrip(","):
             chunks.append(tail)
 
         return chunks
 
     def _normalize_bib_value(self, value: str) -> str:
         normalized = value.strip().rstrip(",").strip()
-        while (
+
+        if (
             len(normalized) >= 2
             and ((normalized[0] == "{" and normalized[-1] == "}") or (normalized[0] == '"' and normalized[-1] == '"'))
         ):
-            normalized = normalized[1:-1].strip()
+            if inner := normalized[1:-1].strip():
+                normalized = inner
 
         return re.sub(r"\s+", " ", normalized)
 

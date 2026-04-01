@@ -294,6 +294,14 @@ def test_latex_parser_ignores_bib_chunks_without_assignment() -> None:
     assert fields == {"title": "Titre Exemple", "year": "2024"}
 
 
+def test_latex_parser_normalize_bib_value_keeps_protective_inner_braces() -> None:
+    parser = LatexParser()
+
+    normalized = parser._normalize_bib_value("{A {Very} Specific Title}")
+
+    assert normalized == "A {Very} Specific Title"
+
+
 def test_latex_parser_falls_back_to_global_find_when_search_start_misses(
     monkeypatch,
 ) -> None:
