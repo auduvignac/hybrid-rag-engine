@@ -46,11 +46,15 @@ def test_parsed_document_merges_bibliographic_reference_updates() -> None:
             raw_entry={"url": "https://example.org"},
         ),
     )
+    document.add_bibliographic_reference(
+        "dupont2024",
+        BibliographicReference(year="2025"),
+    )
 
     reference = document.bibliography["dupont2024"]
     assert reference.title == "Titre"
     assert reference.authors == ["Jean Dupont"]
-    assert reference.year == "2024"
+    assert reference.year == "2025"
     assert reference.entry_type == "online"
     assert reference.raw_entry == {
         "title": "Titre initial",
