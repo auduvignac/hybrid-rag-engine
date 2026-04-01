@@ -18,6 +18,19 @@ _SECTIONING_PATTERN = re.compile(
     re.MULTILINE,
 )
 _BIB_RESOURCE_PATTERN = re.compile(r"\\addbibresource\{(?P<path>[^{}]+)\}")
+_BLOCK_TRANSFORMS = [
+    (re.compile(r"\\begin\{itemize\}"), ""),
+    (re.compile(r"\\end\{itemize\}"), ""),
+    (re.compile(r"\\item\b"), "- "),
+]
+_INLINE_TRANSFORMS = [
+    (re.compile(r"\\(textbf|emph)\{([^{}]*)\}"), r"\2"),
+    (re.compile(r"\\footcite\{[^{}]*\}"), ""),
+    (re.compile(r"\\label\{[^{}]*\}"), ""),
+    (re.compile(r"\\(?:item|noindent)\b"), ""),
+    (re.compile(r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?\{([^{}]*)\}"), r"\1"),
+    (re.compile(r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?"), ""),
+]
 
 
 class LatexParser(BaseParser):
@@ -294,22 +307,15 @@ class LatexParser(BaseParser):
         return "\n".join(lines)
 
     def _clean_text(self, text: str) -> str:
-        text = re.sub(r"\\begin\{itemize\}", "", text)
-        text = re.sub(r"\\end\{itemize\}", "", text)
-        text = re.sub(r"\\item\b", "- ", text)
+        for pattern, replacement in _BLOCK_TRANSFORMS:
+            text = pattern.sub(replacement, text)
         text = self._clean_inline_text(text)
         text = re.sub(r"\n\s*\n+", "\n\n", text)
         return text.strip()
 
     def _clean_inline_text(self, text: str) -> str:
-        text = re.sub(r"\\(textbf|emph)\{([^{}]*)\}", r"\2", text)
-        text = re.sub(r"\\footcite\{[^{}]*\}", "", text)
-        text = re.sub(r"\\label\{[^{}]*\}", "", text)
-        text = re.sub(r"\\(?:item|noindent)\b", "", text)
-        text = re.sub(
-            r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?\{([^{}]*)\}", r"\1", text
-        )
-        text = re.sub(r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?", "", text)
+        for pattern, replacement in _INLINE_TRANSFORMS:
+            text = pattern.sub(replacement, text)
         text = text.replace(r"\%", "%")
         text = re.sub(r"[ \t]+", " ", text)
         return text.strip()
