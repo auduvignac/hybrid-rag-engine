@@ -19,6 +19,15 @@ _SECTIONING_PATTERN = re.compile(
 )
 _BIB_RESOURCE_PATTERN = re.compile(r"\\addbibresource\{(?P<path>[^{}]+)\}")
 _BIB_ENTRY_HEADER_PATTERN = re.compile(r"@(?P<entry_type>\w+)\{(?P<key>[^,\s]+),")
+_CITATION_COMMANDS = ("footcite", "cite", "parentcite")
+_CITATION_COMMAND_PATTERN = "|".join(_CITATION_COMMANDS)
+_CITATION_PATTERN = re.compile(
+    rf"\\(?:{_CITATION_COMMAND_PATTERN})\{{(?P<keys>[^{{}}]*)\}}"
+)
+_CITATION_SEGMENT_PATTERN = re.compile(
+    rf"(?P<sentence>.*?\\(?:{_CITATION_COMMAND_PATTERN})\{{[^{{}}]*\}}.*?(?:[.!?](?=\s|$)|$))",
+    re.DOTALL,
+)
 _BLOCK_TRANSFORMS = [
     (re.compile(r"\\begin\{itemize\}"), ""),
     (re.compile(r"\\end\{itemize\}"), ""),
@@ -26,7 +35,7 @@ _BLOCK_TRANSFORMS = [
 ]
 _INLINE_TRANSFORMS = [
     (re.compile(r"\\(textbf|emph)\{([^{}]*)\}"), r"\2"),
-    (re.compile(r"\\footcite\{[^{}]*\}"), ""),
+    (_CITATION_PATTERN, ""),
     (re.compile(r"\\label\{[^{}]*\}"), ""),
     (re.compile(r"\\(?:item|noindent)\b"), ""),
     (re.compile(r"\\[a-zA-Z]+\*?(?:\[[^\]]*\])?\{([^{}]*)\}"), r"\1"),
@@ -363,10 +372,9 @@ class LatexParser(BaseParser):
         return text.strip()
 
     def _extract_citations(self, text: str) -> list[str]:
-        citation_matches = re.findall(r"\\footcite\{([^{}]*)\}", text)
         citations: list[str] = []
-        for match in citation_matches:
-            for raw_key in match.split(","):
+        for match in _CITATION_PATTERN.finditer(text):
+            for raw_key in match.group("keys").split(","):
                 key = raw_key.strip()
                 if key and key not in citations:
                     citations.append(key)
@@ -409,13 +417,9 @@ class LatexParser(BaseParser):
         if item_segments := self._extract_item_segments(text):
             return item_segments
 
-        sentence_pattern = re.compile(
-            r"(?P<sentence>.*?\\footcite\{[^{}]*\}.*?(?:[.!?](?=\s|$)|$))",
-            re.DOTALL,
-        )
         return [
             match.group("sentence").strip()
-            for match in sentence_pattern.finditer(text)
+            for match in _CITATION_SEGMENT_PATTERN.finditer(text)
             if match.group("sentence").strip()
         ]
 
@@ -434,7 +438,7 @@ class LatexParser(BaseParser):
             body = block.group("body")
             for item_match in item_pattern.finditer(body):
                 item_text = item_match.group("item").strip()
-                if item_text and "\\footcite{" in item_text:
+                if item_text and _CITATION_PATTERN.search(item_text):
                     segments.append(item_text)
 
         return segments

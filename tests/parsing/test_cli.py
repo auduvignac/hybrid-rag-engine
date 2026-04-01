@@ -73,7 +73,7 @@ def _write_temp_source(tmp_path: Path) -> Path:
     source.write_text(
         (
             "\\section{Intro}\n"
-            "Some content \\footcite{dupont2024}.\n\n"
+            "Some content \\cite{dupont2024}.\n\n"
             "\\subsection{Background}\n"
             "More content.\n"
         ),
@@ -101,7 +101,7 @@ def _write_temp_source_with_bibliography(tmp_path: Path) -> Path:
         (
             "\\addbibresource{bibliographies/refs.bib}\n"
             "\\section{Intro}\n"
-            "Some content\\footcite{dupont2024}.\n"
+            "Some content\\parentcite{dupont2024}.\n"
         ),
         encoding="utf-8",
     )

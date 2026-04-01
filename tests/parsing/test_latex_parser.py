@@ -105,17 +105,20 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
     )
     assert (
         parser._clean_inline_text(
-            r"\noindent \textbf{Texte} \emph{important} \footcite{source2025} \label{sec:test} \unknown{valeur}"
+            r"\noindent \textbf{Texte} \emph{important} \cite{source2025} \label{sec:test} \unknown{valeur}"
         )
         == "Texte important valeur"
     )
-    assert parser._extract_citations(r"\footcite{source2025, other2024}\footcite{source2025}") == [
+    assert parser._extract_citations(
+        r"\footcite{source2025, other2024}\cite{source2025}\parentcite{third2023}"
+    ) == [
         "source2025",
         "other2024",
+        "third2023",
     ]
     assert parser._extract_citation_links(
         current_content=(
-            "Premiere phrase avec source\\footcite{source2025}. "
+            "Premiere phrase avec source\\parentcite{source2025}. "
             "Deuxieme phrase sans citation."
         ),
         cleaned_content="Premiere phrase avec source. Deuxieme phrase sans citation.",
@@ -129,12 +132,12 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
     ]
     assert parser._extract_citation_segments(
         "\\begin{itemize}\n"
-        "\\item Premier item\\footcite{source2025}\n"
-        "\\item Deuxieme item\\footcite{other2024, source2025}\n"
+        "\\item Premier item\\cite{source2025}\n"
+        "\\item Deuxieme item\\parentcite{other2024, source2025}\n"
         "\\end{itemize}"
     ) == [
-        "Premier item\\footcite{source2025}",
-        "Deuxieme item\\footcite{other2024, source2025}",
+        "Premier item\\cite{source2025}",
+        "Deuxieme item\\parentcite{other2024, source2025}",
     ]
     assert (
         parser._clean_text(
@@ -151,8 +154,8 @@ def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_con
     source = tmp_path / "CR_citations.tex"
     source.write_text(
         "\\section{Introduction}\n"
-        "Texte avec citation\\footcite{dupont2024} et citations multiples"
-        "\\footcite{martin2023, dupont2024}.\n",
+        "Texte avec citation\\cite{dupont2024} et citations multiples"
+        "\\parentcite{martin2023, dupont2024}.\n",
         encoding="utf-8",
     )
 
@@ -170,9 +173,23 @@ def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_con
             "citations": ["dupont2024", "martin2023"],
         }
     ]
-    assert "footcite" not in section.content
+    assert "cite{" not in section.content
+    assert "parentcite{" not in section.content
     assert "dupont2024" not in section.content
     assert "martin2023" not in section.content
+
+
+def test_latex_parser_supports_footcite_commands() -> None:
+    parser = LatexParser()
+
+    assert parser._extract_citations(r"\footcite{dupont2024, martin2023}") == [
+        "dupont2024",
+        "martin2023",
+    ]
+    assert (
+        parser._clean_inline_text(r"Texte \footcite{dupont2024} conserve")
+        == "Texte conserve"
+    )
 
 
 def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None:
@@ -232,7 +249,7 @@ def test_latex_parser_skips_citation_links_without_clean_text() -> None:
     parser = LatexParser()
 
     citation_links = parser._extract_citation_links(
-        current_content="\\footcite{dupont2024}",
+        current_content="\\cite{dupont2024}",
         cleaned_content="",
     )
 
@@ -457,8 +474,8 @@ def test_latex_parser_extracts_one_citation_link_per_itemize_item(
         "\\section{Liste}\n"
         "Introduction sans citation.\n"
         "\\begin{itemize}\n"
-        "\\item Premier point\\footcite{dupont2024}\n"
-        "\\item Deuxieme point\\footcite{martin2023, dupont2024}\n"
+        "\\item Premier point\\cite{dupont2024}\n"
+        "\\item Deuxieme point\\parentcite{martin2023, dupont2024}\n"
         "\\end{itemize}\n",
         encoding="utf-8",
     )
