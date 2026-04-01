@@ -93,4 +93,10 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
         )
         == "Texte important valeur"
     )
+    assert (
+        parser._clean_text(
+            "\\begin{itemize}\n\\item Premier point\n\\item Deuxieme point\n\\end{itemize}"
+        )
+        == "- Premier point\n- Deuxieme point"
+    )
     assert parser._clean_text("Ligne 1\n\n\n Ligne 2") == "Ligne 1\n\n Ligne 2"

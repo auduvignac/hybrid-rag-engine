@@ -139,6 +139,9 @@ class LatexParser(BaseParser):
         return "\n".join(lines)
 
     def _clean_text(self, text: str) -> str:
+        text = re.sub(r"\\begin\{itemize\}", "", text)
+        text = re.sub(r"\\end\{itemize\}", "", text)
+        text = re.sub(r"\\item\b", "- ", text)
         text = self._clean_inline_text(text)
         text = re.sub(r"\n\s*\n+", "\n\n", text)
         return text.strip()
