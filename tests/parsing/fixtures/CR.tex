@@ -1,0 +1,212 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{array}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}
+
+% ============================================================
+% IHEDN COVER TEMPLATE (XeLaTeX)
+% ============================================================
+% Compilation (from project root):
+%   latexmk -pdf main.tex
+%   LATEXMK_SHELL_ESCAPE=0 latexmk -pdf main.tex
+%
+% Optional environment controls from latexmkrc:
+%   LATEXMK_ENGINE=xelatex        (default/enforced)
+%   LATEXMK_SHELL_ESCAPE=1|0      (default 1, needed for SVG conversion)
+%
+% Required package for this template:
+%   \usepackage{ihedn-cover}
+%
+% Note: ihedn-cover already loads needed internal packages
+% (fontspec, graphicx, tikz, ragged2e, optional svg).
+% ============================================================
+
+% ----------------------------------------------------------------
+% Package options (documented)
+% ----------------------------------------------------------------
+% Geometry scope:
+%   apply-geometry            -> force A4 + zero margins while cover is built
+%   no-apply-geometry         -> do not alter host geometry (default)
+%
+% Typesetting freeze:
+%   global-typesetting        -> apply freeze globally (intrusive)
+%   no-global-typesetting     -> no global freeze (default)
+%
+% Small-caps handling:
+%   local-smallcaps-fix       -> \textsc -> \MakeUppercase only inside cover (default)
+%   no-local-smallcaps-fix    -> disable local fix
+%   global-smallcaps-fix      -> global override (intrusive)
+%   no-global-smallcaps-fix   -> disable global fix (default)
+%
+% Main font handling:
+%   global-mainfont           -> set Times New Roman globally (default)
+%   local-mainfont            -> set Times only during cover rendering
+%   no-mainfont-override      -> keep host document main font
+%
+% SVG support:
+%   svg-support               -> enable SVG logos (default, needs shell-escape)
+%   no-svg-support            -> disable SVG path handling (pdf/png only)
+%
+% Debug overlay:
+%   debug                     -> show mm grid + bounding boxes on cover
+%   no-debug                  -> hide debug overlay (default)
+% ----------------------------------------------------------------
+\usepackage[
+  no-apply-geometry,
+  no-global-typesetting,
+  global-smallcaps-fix,
+  local-smallcaps-fix,
+  global-mainfont,
+  svg-support,
+  no-debug
+]{ihedn-cover}
+
+% ----------------------------------------------------------------
+% Bibliography stack (BibLaTeX/Biber, style from subtree vendor/)
+% ----------------------------------------------------------------
+\usepackage{polyglossia}
+\setdefaultlanguage{french}
+\makeatletter
+\g@addto@macro\captionsfrench{%
+  \renewcommand{\tablename}{Tableau}%
+  \renewcommand{\figurename}{Figure}%
+}
+\makeatother
+\usepackage{csquotes}
+\usepackage{hyperref}
+\makeatletter
+\let\ihedn@orig@input@path\input@path
+\def\input@path{{vendor/biblatex-sciences-po-fr/style/}}
+\makeatother
+\usepackage[
+  backend=biber,
+  style=sciencespo,
+  hyperref=true,
+  autolang=other
+]{biblatex}
+\makeatletter
+\let\input@path\ihedn@orig@input@path
+\makeatother
+\addbibresource{bibliographies/articles.bib}
+\addbibresource{bibliographies/livres.bib}
+\addbibresource{bibliographies/online.bib}
+\addbibresource{bibliographies/rapports.bib}
+
+% ----------------------------------------------------------------
+% tcolorbox
+% ----------------------------------------------------------------
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
+
+% Example: use Arial for the full report + cover.
+% Uncomment and switch package option to no-mainfont-override.
+% \setmainfont{Arial}[
+%   UprightFont    = *,
+%   BoldFont       = * Bold,
+%   ItalicFont     = * Italic,
+%   BoldItalicFont = * Bold Italic
+% ]
+
+\begin{document}
+
+% ----------------------------------------------------------------
+% Cover keys (all available keys are shown below)
+% ----------------------------------------------------------------
+% Header block (top-right), logo, title, report lines, subtitle, committee.
+\PageDeGardeIHEDN{
+    header_1={Union-IHEDN},
+    header_2={Association des auditeurs IHEDN},
+    header_3={région Paris / Île de France},
+    date={le 21 novembre 2025},
+    logo_path={Figures/logos_IHEDN/Logo-AR16},
+    title={Crises majeures : quel rôle pour les citoyens engagés et les associations IHEDN ?},
+    title_max_lines=2,
+    title_fontsize={26.000pt},
+    title_baselineskip={28.667pt},
+    reportline_1={Rapport du Comité d'étude de l'Association régionale des auditeurs},
+    reportline_2={de l'IHEDN région Paris / Île de France (AR 16)},
+    subtitle={Compte rendu de la réunion du 20 novembre 2025},
+    committee={Comité d'étude, d'octobre 2025 à juin 2026, présidé par Valérie Arlé-Faivre, rapporté par Aurélien Duvignac-Rosa, composé de Pascal Bayot Duponchel, Jean-Jacques Cleynen, Valérie Cowan, Alain Fontan, Pierre-Marie Giard, Muriel Joyeux, Bruno Leray, Yves-Henri Renhas, Isabelle de Segonzac, Gérard Turck, Marie Danielle Vasquez-Duchêne.}
+}
+
+\section{Rappel des quatre cercles relatifs aux notions de défense national et de sécurité nationale}
+
+« La notion de défense nationale peut être appréhendée à travers les quatre cercles suivants qui définissent le champ d'intervention de l'IHEDN :
+\begin{itemize}
+\item Le premier cercle est celui de la défense militaire. Il s'agit de la défense par les armes qui se caractérisent par l'emploi ou par le perspective d'emploi de la forme armée, autrement dit de la violence physique ; ses critères sont ceux de la paix et de la guerre ;
+\item Le deuxième cercle est celui de la défense nationale. Elle vise à nous protéger des menaces de tous ordres, c'est-à-dire des atteintes intentionnelles à dimension politique à notre souveraineté, nos intérêts, notre environnement ou notre cohésion nationale. Il s'agit de faire face par exemple aux menaces que constituent entre autre la cybercriminalité, le terrorisme, l'espionnage, la désinformation, le rachat d'entreprises sensibles, la territorialisation de la mer ou les menaces dans l'espace; 
+\item Le troisième cercle est celui de la sécurité nationale. Il s'agit du domaine de l'anticipation, de la préparation et de la réaction aux risques. Tous les risques ne sont pas concernés, mais seulement ceux qui, par leur ampleur, concernent la communauté nationale dans son ensemble : organisation de l'État ou du système politique, infrastructures, entreprises critiques, etc. Il peut s'agir des risques naturels ou technologiques, des épidémies, de l'émergence d'une vulnérabilité ou d'une dépendance technologique ou encore de conséquences systémiques de grands trafics ;
+\item Le quatrième cercle est celui de la sécurité international. La protection contre les atteintes à la défense et à la sécurité national ne saurait être garantie sans action en faveur de la sécurité internationale, qu'il s'agisse de l'action diplomatique bilatérale ou multilatérale et de la maîtrise des armements ou de la promotion des mécanismes de sécurité collective.
+\end{itemize}
+
+Pour garantir notre défense et notre sécurité nationale, c'est l'ensemble de l'État et, au-delà, toutes les forces vives de la communauté nationale, ses entreprises, des collectivités, ses forces politiques, sa jeunesse, qui doivent se mobiliser.
+
+Il en résulte que la défense est permanente et non pas seulement une organisation du temps de guerre. Elle est globale puisqu'elle prend en compte tous les aspects militaires et non militaires de la Nation dans un cadre qui est aussi européen. Elle est enfin transverse, c'est-à-dire interministérielle et doit être pensée et mise en œuvre comme telle ».
+
+\newpage
+
+\section{Rappel des enjeux abordés relatifs à la thématique : « Crises majeures : quel rôle pour les citoyens engagés et les associations IHEDN »}
+
+Les enjeux abordés sont les suivants :
+
+\begin{itemize}
+\item Place des réserves civiles, citoyennes et stratégiques dans la gestion des crises (pandémie, cyberattaque, catastrophe naturelle, conflit hybride, \textit{blackout} énergétique, etc.) ;
+\item Mobilisation  des compétences issues des IHEDN : relais d'information stratégique, animation de la résilience locale, sensibilisation de la population , liens civilo-militaires ;
+\item Rôle des associations régionales en soutien des autorités (préfectures, mairies, forces armées, sécurité civile) ;
+\item Partage d'expériences locales : coordination, formation, remontée d'informations, mise en réseau  ;
+\item Renforcement de la culture de sécurité globale et de l'esprit de défense élargi au niveau territorial ;
+\end{itemize}
+
+\textbf{Pertinence du thème :} Face à la montée des risques systémiques (climat, énergie, cyber, terrorisme, guerre informelle) les crises majeures sont appelées à devenir plus fréquentes. Dans ce contexte, les membres et associations IHEDN, souvent composés de cadres expérimentés issus de la société civile et des forces armées , représentent un maillon stratégique de la résilience nationale. Ce thème questionne leur capacité à agir, à fédérer et à contribuer utilement au service de l'intérêt général.
+
+\newpage
+
+\section{Introduction}
+Dans un contexte européen marqué par une montée des tensions, l'actualité récente a été secouée par des incidents d'ingérence spectaculaires, comme le survol non identifié de drones au-dessus de l'aéroport de Munich en Allemagne en octobre 2025, provoquant la fermeture temporaire de cette infrastructure majeure et la perturbation de milliers de passagers\footcite{lefigaro2025munichdrones}. Ces événements s'inscrivent dans une dynamique plus large qualifiée de « guerre hybride », dont le terme a été introduit dans le \textit{Livre blanc} de 2013\footcite{livreblanc2013defense}, et rapidement repris par le secrétaire général de l'Otan en 2014, Anders Rasmussen, pour décrire la stratégie russe en Ukraine\footcite{tenenbaum2016guerre}.
+Depuis l'implication de l'Europe dans le conflit opposant la Russie à l'Ukraine, Moscou intensifie sa pression sur l'Europe par une combinaison d'actions militaires limitées, d'interventions informationnelles sophistiquées et d'opérations clandestines. Cette stratégie vise à déstabiliser les sociétés européennes en jouant sur leurs fragilités internes et en exploitant notamment les technologies numériques et les vulnérabilités sécuritaires, illustrant ainsi les enjeux contemporains de la « guerre hybride » à laquelle l'Europe doit faire face.
+
+\newpage
+
+\section{Éléments d'analyse relatifs à la guerre informationnelle}
+La désinformation de masse est une arme stratégique contemporaine, particulièrement redoutable en cas d'invasion sur le sol français, car elle peut amplifier la peur et la panique sociale de façon spectaculaire \footcite{garrigou2025desinformation} \footcite{ministere2025infox} \footcite{tf1info2025desinformation}.
+Même si la notion de « guerre hybride » est ancienne, elle n'a cessé de muer à mesure des siècles, pour devenir aujourd'hui un outil à part entière dans les guerres régulières et irrégulières auxquelles le monde est en proie\footcite{tenenbaum2016guerre}.
+
+\subsection{Mécanismes de la désinformation militaire}
+
+La désinformation vise à déstabiliser un État en manipulant l'information pour affaiblir sa cohésion et sa capacité d'action. Les techniques incluent \footcite{rdn2020desinformation} :
+\begin{itemize}
+\item La création de contenus falsifiés diffusés sur les réseaux sociaux par de faux comptes pour saturer le débat public et polariser l'opinion \footcite{garrigou2025desinformation} ;
+\item L'utilisation de « \textit{typosquatting} » (fausses copies de sites gouvernementaux ou médiatiques) pour publier de fausses nouvelles\footcite{garrigou2025desinformation} ;
+\item L'amplification artificielle de rumeurs alarmistes, par exemple la présence supposée de mercenaires étrangers ou de crimes de guerre inventés, pour semer le doute et la peur\footcite{ministere2025infox} \footcite{tf1info2025desinformation}.
+\end{itemize}
+
+\subsection{Risques pour la société civile}
+
+En cas d'invasion, la peur et l'incertitude rendent la population particulièrement vulnérable à la manipulation :
+
+\begin{itemize}
+\item Les fausses informations obtenues et relayées rapidement peuvent catalyser la panique, provoquer des mouvements de foule, ou miner la confiance envers les institutions\footcite{rdn2020desinformation} \footcite{garrigou2025desinformation} ;
+\item La désinformation cible aussi la résilience, cherchant à démoraliser et à diviser, parfois pour affaiblir la volonté de résistance, comme observé en Ukraine et à Taïwan\footcite{garrigou2025desinformation} \footcite{tf1info2025desinformation} ;
+\item Ces campagnes sont parfois coordonnées avec des cyberattaques et le piratage de données pour maximiser leur impact\footcite{roblesfernandez2023desinformation} .
+\end{itemize}
+
+\subsection{Enjeux et stratégies de réponse}
+
+La France anticipe ces menaces via plusieurs entités spécialisées :
+
+\begin{itemize}
+\item Surveillance accrue de l'espace informationnel considéré comme un prolongement du territoire national\footcite{rdn2020desinformation} \footcite{garrigou2025desinformation} ;
+\item Initiatives pour vérifier, démentir et informer en temps réel la population afin de désamorcer les rumeurs et restaurer la confiance\footcite{garrigou2025desinformation} \footcite{ministere2025infox} ;\\
+\item De la coopération internationale et des doctrines précises sont développées pour contrer la désinformation, en orbite autour du concept de « guerre d'influence »\footcite{ministere2025infox} \footcite{rdn2020desinformation}.
+\end{itemize}
+
+\subsection{Propositions et lignes directrices du rapport}
+
+En cas d'invasion militaire sur le sol français, la désinformation de masse constituerait une menace directe contre la stabilité sociale, susceptible de galvaniser la peur et de créer une panique collective. Préparer la société à reconnaître et résister à ces attaques informationnelles est un enjeu central pour la préservation de sa résilience.
+
+\newpage
+
+\printbibliography[heading=bibintoc,title={Références bibliographiques}]
+
+\end{document}

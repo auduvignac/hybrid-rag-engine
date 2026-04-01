@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hybrid-rag-engine"
+version = "0.1.0"
+description = "Hybrid RAG engine parsing foundation."
+requires-python = ">=3.10"
+
+[project.scripts]
+hybrid-rag = "hybrid_rag.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
