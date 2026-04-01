@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,12 @@ def _build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Print the parsed document as formatted JSON.",
+    )
+    parser.add_argument(
+        "-v",
+        "--debug",
+        action="store_true",
+        help="Enable verbose debug output with full tracebacks on errors.",
     )
     return parser
 
@@ -96,6 +103,9 @@ def main() -> int:
         document = parse_document(args.source)
     except Exception as error:
         print(f"Parsing failed: {error}", file=sys.stderr)
+        if args.debug:
+            print("\nFull traceback (debug mode enabled):", file=sys.stderr)
+            traceback.print_exc()
         return 1
 
     if args.json:
