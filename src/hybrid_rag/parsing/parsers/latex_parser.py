@@ -302,12 +302,31 @@ class LatexParser(BaseParser):
         stack.append(node)
 
     def _infer_document_title(self, content: str, source: Path) -> str | None:
-        if content is not None and (
-            title_match := re.search(r"\\title\{(?P<title>[^{}]+)\}", content)
-        ):
-            return self._clean_inline_text(title_match["title"])
+        if content is not None and (title := self._extract_command_argument(content, "title")):
+            return self._clean_inline_text(title)
 
         return source.stem or None
+
+    def _extract_command_argument(self, content: str, command: str) -> str | None:
+        command_match = re.search(rf"\\{command}\{{", content)
+        if command_match is None:
+            return None
+
+        start = command_match.end()
+        depth = 1
+        cursor = start
+        while cursor < len(content) and depth > 0:
+            character = content[cursor]
+            if character == "{":
+                depth += 1
+            elif character == "}":
+                depth -= 1
+            cursor += 1
+
+        if depth > 0:
+            return None
+
+        return content[start : cursor - 1]
 
     def _strip_comments(self, content: str) -> str:
         lines = []

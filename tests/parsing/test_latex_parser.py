@@ -86,6 +86,16 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
     assert root_node.title == "Titre principal"
     assert document.title == "Titre principal"
     assert (
+        parser._infer_document_title(
+            r"\title{Compte \textbf{Rendu} Projet}", Path("ignored.tex")
+        )
+        == "Compte Rendu Projet"
+    )
+    assert (
+        parser._extract_command_argument(r"\title{Titre incomplet", "title")
+        is None
+    )
+    assert (
         parser._infer_document_title("contenu", Path("fallback_title.tex"))
         == "fallback_title"
     )
