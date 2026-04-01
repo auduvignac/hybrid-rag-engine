@@ -26,6 +26,8 @@ def test_latex_parser_builds_expected_hierarchy() -> None:
     assert section.metadata["source_file"] == "sample_cr.tex"
     assert section.metadata["sectioning_level"] == 2
     assert section.metadata["label_value"] == "sec:intro"
+    assert section.metadata["citations"] == []
+    assert section.metadata["citation_links"] == []
 
     subsection = section.children[0]
     assert subsection.title == "Contexte"
@@ -97,6 +99,29 @@ def test_latex_parser_helpers_cover_post_process_and_normalization() -> None:
         "source2025",
         "other2024",
     ]
+    assert parser._extract_citation_links(
+        current_content=(
+            "Premiere phrase avec source\\footcite{source2025}. "
+            "Deuxieme phrase sans citation."
+        ),
+        cleaned_content="Premiere phrase avec source. Deuxieme phrase sans citation.",
+    ) == [
+        {
+            "start": 0,
+            "end": 28,
+            "text": "Premiere phrase avec source.",
+            "citations": ["source2025"],
+        }
+    ]
+    assert parser._extract_citation_segments(
+        "\\begin{itemize}\n"
+        "\\item Premier item\\footcite{source2025}\n"
+        "\\item Deuxieme item\\footcite{other2024, source2025}\n"
+        "\\end{itemize}"
+    ) == [
+        "Premier item\\footcite{source2025}",
+        "Deuxieme item\\footcite{other2024, source2025}",
+    ]
     assert (
         parser._clean_text(
             "\\begin{itemize}\n\\item Premier point\n\\item Deuxieme point\n\\end{itemize}"
@@ -121,6 +146,113 @@ def test_latex_parser_extracts_citations_into_metadata_and_removes_them_from_con
 
     section = document.root_nodes[0]
     assert section.metadata["citations"] == ["dupont2024", "martin2023"]
+    assert section.metadata["citation_links"] == [
+        {
+            "start": 0,
+            "end": len("Texte avec citation et citations multiples."),
+            "text": "Texte avec citation et citations multiples.",
+            "citations": ["dupont2024", "martin2023"],
+        }
+    ]
     assert "footcite" not in section.content
     assert "dupont2024" not in section.content
     assert "martin2023" not in section.content
+
+
+def test_latex_parser_skips_citation_links_without_clean_text() -> None:
+    parser = LatexParser()
+
+    citation_links = parser._extract_citation_links(
+        current_content="\\footcite{dupont2024}",
+        cleaned_content="",
+    )
+
+    assert citation_links == []
+
+
+def test_latex_parser_falls_back_to_global_find_when_search_start_misses(
+    monkeypatch,
+) -> None:
+    parser = LatexParser()
+
+    monkeypatch.setattr(
+        parser,
+        "_extract_citation_segments",
+        lambda _: [
+            "Phrase dupliquee\\footcite{dupont2024}.",
+            "Phrase dupliquee\\footcite{dupont2024}.",
+        ],
+    )
+
+    citation_links = parser._extract_citation_links(
+        current_content="ignored",
+        cleaned_content="Phrase dupliquee.",
+    )
+
+    assert citation_links == [
+        {
+            "start": 0,
+            "end": len("Phrase dupliquee."),
+            "text": "Phrase dupliquee.",
+            "citations": ["dupont2024"],
+        },
+        {
+            "start": 0,
+            "end": len("Phrase dupliquee."),
+            "text": "Phrase dupliquee.",
+            "citations": ["dupont2024"],
+        },
+    ]
+
+
+def test_latex_parser_skips_citation_link_when_text_cannot_be_found(
+    monkeypatch,
+) -> None:
+    parser = LatexParser()
+
+    monkeypatch.setattr(
+        parser,
+        "_extract_citation_segments",
+        lambda _: ["Phrase absente\\footcite{dupont2024}."],
+    )
+
+    citation_links = parser._extract_citation_links(
+        current_content="ignored",
+        cleaned_content="Un autre contenu.",
+    )
+
+    assert citation_links == []
+
+
+def test_latex_parser_extracts_one_citation_link_per_itemize_item(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "CR_itemize_citations.tex"
+    source.write_text(
+        "\\section{Liste}\n"
+        "Introduction sans citation.\n"
+        "\\begin{itemize}\n"
+        "\\item Premier point\\footcite{dupont2024}\n"
+        "\\item Deuxieme point\\footcite{martin2023, dupont2024}\n"
+        "\\end{itemize}\n",
+        encoding="utf-8",
+    )
+
+    document = LatexParser().parse(source)
+
+    section = document.root_nodes[0]
+    assert section.metadata["citations"] == ["dupont2024", "martin2023"]
+    assert section.metadata["citation_links"] == [
+        {
+            "start": section.content.find("Premier point"),
+            "end": section.content.find("Premier point") + len("Premier point"),
+            "text": "Premier point",
+            "citations": ["dupont2024"],
+        },
+        {
+            "start": section.content.find("Deuxieme point"),
+            "end": section.content.find("Deuxieme point") + len("Deuxieme point"),
+            "text": "Deuxieme point",
+            "citations": ["martin2023", "dupont2024"],
+        },
+    ]

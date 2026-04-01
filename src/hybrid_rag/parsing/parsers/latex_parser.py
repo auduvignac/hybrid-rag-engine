@@ -73,14 +73,18 @@ class LatexParser(BaseParser):
             label_value = re.search(r"\\label\{([^{}]*)\}", current_content)
             label_value = label_value[1] if label_value else ""
             citations = self._extract_citations(current_content)
+            body = self._clean_text(current_content)
             metadata = {
                 "source_file": source.name,
                 "sectioning_level": level,
                 "title": title,
                 "label_value": label_value,
                 "citations": citations,
+                "citation_links": self._extract_citation_links(
+                    current_content=current_content,
+                    cleaned_content=body,
+                ),
             }
-            body = self._clean_text(current_content)
             node = DocumentNode(
                 title=title,
                 level=level,
@@ -171,3 +175,69 @@ class LatexParser(BaseParser):
                     citations.append(key)
 
         return citations
+
+    def _extract_citation_links(
+        self, current_content: str, cleaned_content: str
+    ) -> list[dict[str, int | str | list[str]]]:
+        citation_links: list[dict[str, int | str | list[str]]] = []
+        search_start = 0
+        raw_segments = self._extract_citation_segments(current_content)
+
+        for raw_segment in raw_segments:
+            citations = self._extract_citations(raw_segment)
+            cleaned_sentence = self._clean_text(raw_segment)
+            if not citations or not cleaned_sentence:
+                continue
+
+            start = cleaned_content.find(cleaned_sentence, search_start)
+            if start == -1:
+                start = cleaned_content.find(cleaned_sentence)
+            if start == -1:
+                continue
+
+            end = start + len(cleaned_sentence)
+            citation_links.append(
+                {
+                    "start": start,
+                    "end": end,
+                    "text": cleaned_sentence,
+                    "citations": citations,
+                }
+            )
+            search_start = end
+
+        return citation_links
+
+    def _extract_citation_segments(self, text: str) -> list[str]:
+        if item_segments := self._extract_item_segments(text):
+            return item_segments
+
+        sentence_pattern = re.compile(
+            r"(?P<sentence>.*?\\footcite\{[^{}]*\}.*?(?:[.!?](?=\s|$)|$))",
+            re.DOTALL,
+        )
+        return [
+            match.group("sentence").strip()
+            for match in sentence_pattern.finditer(text)
+            if match.group("sentence").strip()
+        ]
+
+    def _extract_item_segments(self, text: str) -> list[str]:
+        itemize_pattern = re.compile(
+            r"\\begin\{itemize\}(?P<body>.*?)\\end\{itemize\}",
+            re.DOTALL,
+        )
+        item_pattern = re.compile(
+            r"\\item\b(?P<item>.*?)(?=\\item\b|$)",
+            re.DOTALL,
+        )
+        segments: list[str] = []
+
+        for block in itemize_pattern.finditer(text):
+            body = block.group("body")
+            for item_match in item_pattern.finditer(body):
+                item_text = item_match.group("item").strip()
+                if item_text and "\\footcite{" in item_text:
+                    segments.append(item_text)
+
+        return segments
