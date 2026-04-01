@@ -15,7 +15,6 @@ class ParserRegistry:
 
     def __init__(self) -> None:
         self._parsers_by_extension: dict[str, ParserType] = {}
-        self._parser_classes: list[ParserType] = []
 
     def register(
         self, parser_cls: ParserType, extensions: Iterable[str]
@@ -39,9 +38,6 @@ class ParserRegistry:
                 )
             self._parsers_by_extension[extension] = parser_cls
 
-        if parser_cls not in self._parser_classes:
-            self._parser_classes.append(parser_cls)
-
     def get_parser_class(self, source: Path) -> ParserType:
         """Resolve a parser class for a source path."""
 
@@ -50,7 +46,7 @@ class ParserRegistry:
         if parser_cls is not None:
             return parser_cls
 
-        for candidate in self._parser_classes:
+        for candidate in set(self._parsers_by_extension.values()):
             if candidate.can_handle(source):
                 return candidate
 
