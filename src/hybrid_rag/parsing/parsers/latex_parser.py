@@ -143,7 +143,7 @@ class LatexParser(BaseParser):
             path = Path(bibliography_path)
             if not path.exists():
                 continue
-            references.update(self._parse_bib_file(path))
+            references |= self._parse_bib_file(path)
 
         return references
 
