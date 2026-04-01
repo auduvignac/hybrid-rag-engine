@@ -12,7 +12,7 @@ def test_pdf_parser_can_handle_pdf_sources() -> None:
     assert parser.can_handle(Path("report.tex")) is False
 
 
-def test_pdf_parser_placeholder_methods_raise_not_implemented_error(
+def test_pdf_parser_placeholder_methods_raise_user_level_error(
     tmp_path: Path,
 ) -> None:
     parser = PdfParser()
@@ -20,16 +20,16 @@ def test_pdf_parser_placeholder_methods_raise_not_implemented_error(
     source.write_text("placeholder", encoding="utf-8")
 
     with pytest.raises(
-        NotImplementedError, match="PDF parsing is not implemented yet."
+        ValueError, match="PDF parsing is not supported yet."
     ):
         parser._load(source)
 
     with pytest.raises(
-        NotImplementedError, match="PDF parsing is not implemented yet."
+        ValueError, match="PDF parsing is not supported yet."
     ):
         parser._extract_structure("content", source)
 
     with pytest.raises(
-        NotImplementedError, match="PDF parsing is not implemented yet."
+        ValueError, match="PDF parsing is not supported yet."
     ):
         parser.parse(source)
