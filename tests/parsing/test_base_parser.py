@@ -108,6 +108,17 @@ def test_registry_raises_clear_errors_for_invalid_registration_and_unknown_sourc
         registry.get_parser_class(Path("notes.md"))
 
 
+def test_registry_raises_for_duplicate_extension_registration() -> None:
+    registry = ParserRegistry()
+    registry.register(RecordingParser, [".dummy"])
+
+    with pytest.raises(
+        ValueError,
+        match=r"Extension '\.dummy' is already registered for parser 'RecordingParser'\.",
+    ):
+        registry.register(FallbackParser, [".dummy"])
+
+
 def test_factory_and_service_can_use_custom_registry(tmp_path: Path) -> None:
     source = tmp_path / "example.dummy"
     source.write_text("payload", encoding="utf-8")

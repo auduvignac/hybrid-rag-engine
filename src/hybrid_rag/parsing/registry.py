@@ -31,6 +31,12 @@ class ParserRegistry:
             )
 
         for extension in normalized_extensions:
+            existing = self._parsers_by_extension.get(extension)
+            if existing is not None and existing is not parser_cls:
+                raise ValueError(
+                    f"Extension '{extension}' is already registered "
+                    f"for parser '{existing.__name__}'."
+                )
             self._parsers_by_extension[extension] = parser_cls
 
         if parser_cls not in self._parser_classes:
