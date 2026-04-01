@@ -45,7 +45,7 @@ class ParserRegistry:
             return parser_cls
 
         for candidate in self._parser_classes:
-            if candidate().can_handle(source):
+            if candidate.can_handle(source):
                 return candidate
 
         raise LookupError(

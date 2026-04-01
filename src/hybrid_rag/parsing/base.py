@@ -29,8 +29,9 @@ class BaseParser(ABC):
         self._post_process(document)
         return document
 
+    @classmethod
     @abstractmethod
-    def can_handle(self, source: Path) -> bool:
+    def can_handle(cls, source: Path) -> bool:
         """Return whether this parser supports the given source."""
 
     @abstractmethod

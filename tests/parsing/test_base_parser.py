@@ -10,7 +10,8 @@ from hybrid_rag.parsing.service import ParsingService
 
 
 class RejectingParser(BaseParser):
-    def can_handle(self, source: Path) -> bool:
+    @classmethod
+    def can_handle(cls, source: Path) -> bool:
         return False
 
     def _load(self, source: Path) -> str:
@@ -21,11 +22,14 @@ class RejectingParser(BaseParser):
 
 
 class RecordingParser(BaseParser):
+    can_handle_calls: list[str] = []
+
     def __init__(self) -> None:
         self.calls: list[str] = []
 
-    def can_handle(self, source: Path) -> bool:
-        self.calls.append("can_handle")
+    @classmethod
+    def can_handle(cls, source: Path) -> bool:
+        cls.can_handle_calls.append(str(source))
         return source.suffix == ".dummy"
 
     def _load(self, source: Path) -> str:
@@ -38,7 +42,8 @@ class RecordingParser(BaseParser):
 
 
 class FallbackParser(BaseParser):
-    def can_handle(self, source: Path) -> bool:
+    @classmethod
+    def can_handle(cls, source: Path) -> bool:
         return source.name.startswith("CR_")
 
     def _load(self, source: Path) -> str:
@@ -64,12 +69,14 @@ def test_base_parser_raises_value_error_when_source_is_not_supported() -> None:
 def test_base_parser_template_method_uses_default_normalize_and_post_process() -> (
     None
 ):
+    RecordingParser.can_handle_calls = []
     parser = RecordingParser()
 
     document = parser.parse(Path("example.dummy"))
 
     assert document.document_type == "dummy"
-    assert parser.calls == ["can_handle", "load", "extract:payload"]
+    assert RecordingParser.can_handle_calls == ["example.dummy"]
+    assert parser.calls == ["load", "extract:payload"]
 
 
 def test_registry_resolves_by_extension_and_can_handle_fallback() -> None:

@@ -20,7 +20,8 @@ class PdfParser(BaseParser):
         "Please convert the PDF to a supported text format before processing."
     )
 
-    def can_handle(self, source: Path) -> bool:
+    @classmethod
+    def can_handle(cls, source: Path) -> bool:
         return Path(source).suffix.lower() == ".pdf"
 
     def _load(self, source: Path) -> str:

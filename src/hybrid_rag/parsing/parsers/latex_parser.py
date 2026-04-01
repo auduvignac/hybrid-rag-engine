@@ -33,7 +33,8 @@ class LatexParser(BaseParser):
         "subparagraph": 6,
     }
 
-    def can_handle(self, source: Path) -> bool:
+    @classmethod
+    def can_handle(cls, source: Path) -> bool:
         return source.suffix.lower() == ".tex"
 
     def _load(self, source: Path) -> str:
