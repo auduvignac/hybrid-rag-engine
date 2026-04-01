@@ -18,6 +18,7 @@ _SECTIONING_PATTERN = re.compile(
     re.MULTILINE,
 )
 _BIB_RESOURCE_PATTERN = re.compile(r"\\addbibresource\{(?P<path>[^{}]+)\}")
+_BIB_ENTRY_HEADER_PATTERN = re.compile(r"@(?P<entry_type>\w+)\{(?P<key>[^,\s]+),")
 _BLOCK_TRANSFORMS = [
     (re.compile(r"\\begin\{itemize\}"), ""),
     (re.compile(r"\\end\{itemize\}"), ""),
@@ -152,13 +153,11 @@ class LatexParser(BaseParser):
         index = 0
 
         while index < len(content):
-            start = content.find("@", index)
-            if start == -1:
+            header_match = _BIB_ENTRY_HEADER_PATTERN.search(content, index)
+            if header_match is None:
                 break
-
-            brace_start = content.find("{", start)
-            if brace_start == -1:
-                break
+            start = header_match.start()
+            brace_start = header_match.start("key") - 1
 
             depth = 1
             cursor = brace_start + 1
@@ -170,8 +169,18 @@ class LatexParser(BaseParser):
                     depth -= 1
                 cursor += 1
 
+            if depth > 0:
+                index = cursor
+                continue
+
             if entry_text := content[start:cursor].strip():
-                key, reference = self._parse_bibliographic_entry(entry_text, path)
+                try:
+                    key, reference = self._parse_bibliographic_entry(
+                        entry_text, path
+                    )
+                except ValueError:
+                    index = cursor
+                    continue
                 entries[key] = reference
             index = cursor
 

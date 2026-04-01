@@ -276,12 +276,87 @@ def test_latex_parser_returns_empty_entries_for_bib_file_without_opening_brace(
     assert references == {}
 
 
+def test_latex_parser_parse_bib_file_skips_entry_raising_value_error(
+    tmp_path: Path,
+) -> None:
+    parser = LatexParser()
+    bib_file = tmp_path / "broken_entry.bib"
+    bib_file.write_text(
+        "@online{broken,\n"
+        "  title = {Broken Entry}\n",
+        encoding="utf-8",
+    )
+
+    references = parser._parse_bib_file(bib_file)
+
+    assert references == {}
+
+
 def test_latex_parser_raises_for_invalid_bibliographic_entry() -> None:
     parser = LatexParser()
     path = Path("tests/parsing/fixtures/bibliographies/online.bib")
 
     with pytest.raises(ValueError, match="Invalid bibliographic entry"):
         parser._parse_bibliographic_entry("@online invalid", path)
+
+
+def test_latex_parser_parse_bib_file_skips_invalid_entries_and_keeps_valid_ones(
+    tmp_path: Path,
+) -> None:
+    parser = LatexParser()
+    bib_file = tmp_path / "mixed.bib"
+    bib_file.write_text(
+        "@online{valid2024,\n"
+        "  title = {Valid Entry},\n"
+        "  year = {2024}\n"
+        "}\n\n"
+        "@online invalid\n\n"
+        "@article{second2025,\n"
+        "  title = {Second Entry},\n"
+        "  year = {2025}\n"
+        "}\n",
+        encoding="utf-8",
+    )
+
+    references = parser._parse_bib_file(bib_file)
+
+    assert set(references) == {"valid2024", "second2025"}
+    assert references["valid2024"].title == "Valid Entry"
+    assert references["second2025"].title == "Second Entry"
+
+
+def test_latex_parser_parse_bib_file_continues_after_parse_value_error(
+    tmp_path: Path, monkeypatch
+) -> None:
+    parser = LatexParser()
+    bib_file = tmp_path / "recoverable_failure.bib"
+    bib_file.write_text(
+        "@online{first2024,\n"
+        "  title = {First Entry},\n"
+        "  year = {2024}\n"
+        "}\n\n"
+        "@article{second2025,\n"
+        "  title = {Second Entry},\n"
+        "  year = {2025}\n"
+        "}\n",
+        encoding="utf-8",
+    )
+
+    original = parser._parse_bibliographic_entry
+
+    def fake_parse_bibliographic_entry(entry_text: str, path: Path):
+        if "first2024" in entry_text:
+            raise ValueError("synthetic parse failure")
+        return original(entry_text, path)
+
+    monkeypatch.setattr(
+        parser, "_parse_bibliographic_entry", fake_parse_bibliographic_entry
+    )
+
+    references = parser._parse_bib_file(bib_file)
+
+    assert set(references) == {"second2025"}
+    assert references["second2025"].title == "Second Entry"
 
 
 def test_latex_parser_ignores_bib_chunks_without_assignment() -> None:
