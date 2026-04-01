@@ -32,7 +32,10 @@ def test_package_exports_and_domain_helpers() -> None:
 
 def test_parsed_document_merges_bibliographic_reference_updates() -> None:
     document = ParsedDocument(source_path="source.tex", document_type="latex")
-    document.add_bibliographic_reference("dupont2024", BibliographicReference())
+    document.add_bibliographic_reference(
+        "dupont2024",
+        BibliographicReference(raw_entry={"title": "Titre initial"}),
+    )
     document.add_bibliographic_reference(
         "dupont2024",
         BibliographicReference(
@@ -49,7 +52,10 @@ def test_parsed_document_merges_bibliographic_reference_updates() -> None:
     assert reference.authors == ["Jean Dupont"]
     assert reference.year == "2024"
     assert reference.entry_type == "online"
-    assert reference.raw_entry == {"url": "https://example.org"}
+    assert reference.raw_entry == {
+        "title": "Titre initial",
+        "url": "https://example.org",
+    }
 
 
 def test_cli_serializes_node_type_as_enum_value() -> None:

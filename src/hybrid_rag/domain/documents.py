@@ -71,4 +71,4 @@ class ParsedDocument:
         if reference.entry_type:
             existing.entry_type = reference.entry_type
         if reference.raw_entry:
-            existing.raw_entry = reference.raw_entry
+            existing.raw_entry.update(reference.raw_entry)
