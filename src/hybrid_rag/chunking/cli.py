@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-import traceback
 from pathlib import Path
 from typing import Any
 
+from hybrid_rag.cli_common import add_debug_argument, run_cli_action
 from hybrid_rag.chunking.service import chunk_document
 from hybrid_rag.domain.chunks import Chunk
 from hybrid_rag.parsing.service import parse_document
@@ -26,12 +25,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the generated chunks as formatted JSON.",
     )
-    parser.add_argument(
-        "-v",
-        "--debug",
-        action="store_true",
-        help="Enable verbose debug output with full tracebacks on errors.",
-    )
+    add_debug_argument(parser)
     return parser
 
 
@@ -75,18 +69,18 @@ def _print_chunk(chunk: Chunk) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
-    try:
+    def _chunk_action() -> list[Chunk]:
         document = parse_document(args.source)
-        chunks = chunk_document(document)
-    except KeyboardInterrupt:
-        print("Chunking cancelled by user.", file=sys.stderr)
-        return 130
-    except Exception as error:
-        print(f"Chunking failed: {error}", file=sys.stderr)
-        if args.debug:
-            print("\nFull traceback (debug mode enabled):", file=sys.stderr)
-            traceback.print_exc()
-        return 1
+        return chunk_document(document)
+
+    exit_code, chunks = run_cli_action(
+        _chunk_action,
+        operation_name="Chunking",
+        debug=args.debug,
+        cancel_message="Chunking cancelled by user.",
+    )
+    if exit_code != 0 or chunks is None:
+        return exit_code
 
     if args.json:
         print(

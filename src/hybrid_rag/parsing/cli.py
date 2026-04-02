@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-import traceback
 from pathlib import Path
 from typing import Any
 
+from hybrid_rag.cli_common import add_debug_argument, run_cli_action
 from hybrid_rag.domain.documents import (
     BibliographicReference,
     DocumentNode,
@@ -29,12 +28,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the parsed document as formatted JSON.",
     )
-    parser.add_argument(
-        "-v",
-        "--debug",
-        action="store_true",
-        help="Enable verbose debug output with full tracebacks on errors.",
-    )
+    add_debug_argument(parser)
     return parser
 
 
@@ -99,17 +93,14 @@ def _print_node(node: DocumentNode, indent: int = 0) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
-    try:
-        document = parse_document(args.source)
-    except KeyboardInterrupt:
-        print("Parsing cancelled by user.", file=sys.stderr)
-        return 130
-    except Exception as error:
-        print(f"Parsing failed: {error}", file=sys.stderr)
-        if args.debug:
-            print("\nFull traceback (debug mode enabled):", file=sys.stderr)
-            traceback.print_exc()
-        return 1
+    exit_code, document = run_cli_action(
+        lambda: parse_document(args.source),
+        operation_name="Parsing",
+        debug=args.debug,
+        cancel_message="Parsing cancelled by user.",
+    )
+    if exit_code != 0 or document is None:
+        return exit_code
 
     if args.json:
         print(json.dumps(_document_to_dict(document), indent=2, ensure_ascii=False))
