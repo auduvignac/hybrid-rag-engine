@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This file is intended to be sourced, so these options affect the caller shell.
+set -euo pipefail
+
 resolve_python_bin() {
   if test -n "${PYTHON_BIN:-}"; then
     echo "${PYTHON_BIN}"
@@ -26,6 +29,11 @@ resolve_python_bin() {
 }
 
 install_project_in_venv() {
+  if ! test -f venv/bin/activate; then
+    echo "Missing venv/bin/activate. Run setup_venv or rebuild_venv first." >&2
+    return 1
+  fi
+
   echo "venv activation (source venv/bin/activate)"
   # This file is meant to be sourced so activation affects the caller shell.
   source venv/bin/activate || return 1
@@ -70,7 +78,16 @@ rebuild_venv() {
 }
 
 run_pytest() {
-  python -m pytest \
+  local venv_dir="${VENV_DIR:-venv}"
+  local python_bin="${venv_dir}/bin/python"
+
+  if ! test -x "${python_bin}"; then
+    echo "Error: expected virtualenv Python at '${python_bin}' but it was not found or is not executable." >&2
+    echo "Run setup_venv or rebuild_venv first." >&2
+    return 1
+  fi
+
+  "${python_bin}" -m pytest \
     -s \
     --log-cli-level=INFO \
     --cov=src/hybrid_rag \
