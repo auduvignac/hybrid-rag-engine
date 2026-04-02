@@ -94,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
                 [_chunk_to_dict(chunk) for chunk in chunks],
                 indent=2,
                 ensure_ascii=False,
+                default=str,
             )
         )
     else:

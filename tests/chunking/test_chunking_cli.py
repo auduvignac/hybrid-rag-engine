@@ -64,6 +64,33 @@ def test_chunking_cli_main_json_output_success(
     assert "content_hash" in payload[0]["metadata"]
 
 
+def test_chunking_cli_main_json_output_handles_non_serializable_metadata(
+    monkeypatch, capsys
+) -> None:
+    chunk = Chunk(
+        chunk_id="abc123",
+        source_path="doc.tex",
+        document_type="latex",
+        text="Intro content",
+        title="Intro",
+        section_path=["Intro"],
+        node_type=NodeType.SECTION,
+        metadata={"fixture_path": Path("tests/parsing/fixtures/sample_cr.tex")},
+    )
+
+    monkeypatch.setattr(
+        chunking_cli_module, "parse_document", lambda _source: object()
+    )
+    monkeypatch.setattr(chunking_cli_module, "chunk_document", lambda _doc: [chunk])
+
+    exit_code = main(["--json", "dummy.tex"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    payload = json.loads(captured.out)
+    assert payload[0]["metadata"]["fixture_path"] == "tests/parsing/fixtures/sample_cr.tex"
+
+
 def test_chunking_cli_main_summary_output_success(
     tmp_path: Path, capsys
 ) -> None:
