@@ -25,18 +25,7 @@ resolve_python_bin() {
   return 1
 }
 
-setup_venv() {
-  local python_bin
-  python_bin="$(resolve_python_bin)" || return 1
-
-  if test -d venv; then
-    echo "venv exists. Deleting venv."
-    rm -rf venv
-  fi
-
-  echo "create venv (${python_bin} -m venv venv)"
-  "${python_bin}" -m venv venv || return 1
-
+install_project_in_venv() {
   echo "venv activation (source venv/bin/activate)"
   # This file is meant to be sourced so activation affects the caller shell.
   source venv/bin/activate || return 1
@@ -53,6 +42,31 @@ setup_venv() {
 
   echo "python -m pip install -e ."
   python -m pip install -e . || return 1
+}
+
+setup_venv() {
+  local python_bin
+  python_bin="$(resolve_python_bin)" || return 1
+
+  if test -d venv; then
+    echo "venv already exists. Reusing it."
+    install_project_in_venv || return 1
+    return 0
+  fi
+
+  echo "create venv (${python_bin} -m venv venv)"
+  "${python_bin}" -m venv venv || return 1
+
+  install_project_in_venv || return 1
+}
+
+rebuild_venv() {
+  if test -d venv; then
+    echo "venv exists. Deleting venv."
+    rm -rf venv || return 1
+  fi
+
+  setup_venv || return 1
 }
 
 run_pytest() {
