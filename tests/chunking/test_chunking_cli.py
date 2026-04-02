@@ -32,6 +32,23 @@ def test_chunk_to_dict_json_serializable() -> None:
     json.dumps(as_dict)
 
 
+def test_chunk_to_dict_serializes_none_node_type() -> None:
+    chunk = Chunk(
+        chunk_id="doc.tex::node.1",
+        source_path="doc.tex",
+        document_type="latex",
+        text="Untyped content",
+        title=None,
+        section_path=[],
+        node_type=None,
+        metadata={},
+    )
+
+    as_dict = _chunk_to_dict(chunk)
+
+    assert as_dict["node_type"] is None
+
+
 def _write_temp_source(tmp_path: Path) -> Path:
     source = tmp_path / "doc.tex"
     source.write_text(
