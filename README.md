@@ -16,6 +16,27 @@ pip install -r requirements-dev.txt
 pip install -e .
 ```
 
+You can also source the Bash helper and recreate the virtual environment in one command:
+
+```bash
+source scripts/dev.sh
+setup_venv
+```
+
+Run the full test suite:
+
+```bash
+source scripts/dev.sh
+run_pytest
+```
+
+Run specific test files:
+
+```bash
+source scripts/dev.sh
+run_pytest tests/parsing/test_parsing_cli.py tests/chunking/test_chunking.py
+```
+
 ## Run Tests
 
 Run the full test suite with coverage:
