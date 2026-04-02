@@ -5,6 +5,13 @@ from hybrid_rag.domain.documents import (
     DocumentNode,
     ParsedDocument,
 )
+from hybrid_rag.domain.chunks import Chunk
 from hybrid_rag.domain.enums import NodeType
 
-__all__ = ["BibliographicReference", "DocumentNode", "ParsedDocument", "NodeType"]
+__all__ = [
+    "BibliographicReference",
+    "Chunk",
+    "DocumentNode",
+    "ParsedDocument",
+    "NodeType",
+]

@@ -9,7 +9,8 @@ description = "Hybrid RAG engine parsing foundation."
 requires-python = ">=3.10"
 
 [project.scripts]
-hybrid-rag = "hybrid_rag.cli:main"
+hybrid-rag-parsing = "hybrid_rag.parsing.cli:main"
+hybrid-rag-chunking = "hybrid_rag.chunking.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
