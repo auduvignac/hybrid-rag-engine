@@ -79,6 +79,21 @@ def test_chunking_cli_main_summary_output_success(
     assert "citations: dupont2024" in captured.out
 
 
+def test_chunking_cli_main_summary_handles_empty_chunk_list(
+    monkeypatch, capsys
+) -> None:
+    monkeypatch.setattr(
+        chunking_cli_module, "parse_document", lambda _source: object()
+    )
+    monkeypatch.setattr(chunking_cli_module, "chunk_document", lambda _doc: [])
+
+    exit_code = main(["dummy.tex"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out.strip() == "Chunks: 0"
+
+
 def test_chunking_cli_main_nonexistent_file_error(capsys) -> None:
     exit_code = main(["missing.tex"])
     captured = capsys.readouterr()
