@@ -148,8 +148,9 @@ def test_default_factory_and_service_support_tex_and_reject_unknown_sources() ->
         == "PdfParser"
     )
     assert (
-        parse_document(Path("tests/parsing/fixtures/sample_cr.tex"))
-        .document_type
+        parse_document(
+            Path("tests/parsing/fixtures/sample_cr.tex")
+        ).document_type
         == "latex"
     )
 

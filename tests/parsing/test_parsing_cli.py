@@ -1,9 +1,14 @@
 import json
 from pathlib import Path
 
-import hybrid_rag.cli as cli_module
-from hybrid_rag.cli import _document_to_dict, main
-from hybrid_rag.domain import BibliographicReference, DocumentNode, NodeType, ParsedDocument
+import hybrid_rag.parsing.cli as cli_module
+from hybrid_rag.domain import (
+    BibliographicReference,
+    DocumentNode,
+    NodeType,
+    ParsedDocument,
+)
+from hybrid_rag.parsing.cli import _document_to_dict, main
 
 
 def test_document_to_dict_json_serializable() -> None:

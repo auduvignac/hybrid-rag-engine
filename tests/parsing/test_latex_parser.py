@@ -192,7 +192,9 @@ def test_latex_parser_supports_footcite_commands() -> None:
     )
 
 
-def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None:
+def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> (
+    None
+):
     fixture = Path("tests/parsing/fixtures/CR.tex")
 
     document = LatexParser().parse(fixture)
@@ -200,15 +202,17 @@ def test_latex_parser_extracts_bibliography_paths_and_resolves_entries() -> None
     assert "lefigaro2025munichdrones" in document.bibliography
     assert "livreblanc2013defense" in document.bibliography
     assert document.bibliography["lefigaro2025munichdrones"].title is not None
-    assert document.bibliography["lefigaro2025munichdrones"].entry_type == "online"
+    assert (
+        document.bibliography["lefigaro2025munichdrones"].entry_type
+        == "online"
+    )
     assert (
         document.bibliography["lefigaro2025munichdrones"].raw_entry["journal"]
         == "Le Figaro"
     )
-    assert (
-        document.bibliography["roblesfernandez2023desinformation"].authors
-        == ["Manuel Robles Fernandez"]
-    )
+    assert document.bibliography[
+        "roblesfernandez2023desinformation"
+    ].authors == ["Manuel Robles Fernandez"]
 
 
 def test_latex_parser_deduplicates_bibliography_resource_paths(
@@ -317,8 +321,7 @@ def test_latex_parser_parse_bib_file_skips_entry_raising_value_error(
     parser = LatexParser()
     bib_file = tmp_path / "broken_entry.bib"
     bib_file.write_text(
-        "@online{broken,\n"
-        "  title = {Broken Entry}\n",
+        "@online{broken,\n" "  title = {Broken Entry}\n",
         encoding="utf-8",
     )
 
@@ -404,7 +407,9 @@ def test_latex_parser_ignores_bib_chunks_without_assignment() -> None:
     assert fields == {"title": "Titre Exemple", "year": "2024"}
 
 
-def test_latex_parser_normalize_bib_value_keeps_protective_inner_braces() -> None:
+def test_latex_parser_normalize_bib_value_keeps_protective_inner_braces() -> (
+    None
+):
     parser = LatexParser()
 
     normalized = parser._normalize_bib_value("{A {Very} Specific Title}")
@@ -488,13 +493,15 @@ def test_latex_parser_extracts_one_citation_link_per_itemize_item(
     assert section.metadata["citation_links"] == [
         {
             "start": section.content.find("Premier point"),
-            "end": section.content.find("Premier point") + len("Premier point"),
+            "end": section.content.find("Premier point")
+            + len("Premier point"),
             "text": "Premier point",
             "citations": ["dupont2024"],
         },
         {
             "start": section.content.find("Deuxieme point"),
-            "end": section.content.find("Deuxieme point") + len("Deuxieme point"),
+            "end": section.content.find("Deuxieme point")
+            + len("Deuxieme point"),
             "text": "Deuxieme point",
             "citations": ["martin2023", "dupont2024"],
         },

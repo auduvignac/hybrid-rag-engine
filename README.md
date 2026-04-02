@@ -2,6 +2,11 @@
 
 Hybrid-RAG-Engine is a provenance-aware hybrid retrieval-augmented generation pipeline that combines semantic and lexical search to deliver accurate, grounded, and traceable question answering over structured document collections.
 
+Current scope:
+- document parsing for LaTeX sources
+- normalized parsed document model
+- structure-aware chunking foundation
+
 ## Development Setup
 
 ```bash
@@ -30,13 +35,27 @@ python -m pytest -s --log-cli-level=INFO --cov=src/hybrid_rag --cov-report=term-
 Parse a `.tex` file and print a readable summary:
 
 ```bash
-hybrid-rag tests/parsing/fixtures/sample_cr.tex
+hybrid-rag-parsing tests/parsing/fixtures/sample_cr.tex
 ```
 
 Print the parsed document as JSON:
 
 ```bash
-hybrid-rag tests/parsing/fixtures/sample_cr.tex --json
+hybrid-rag-parsing tests/parsing/fixtures/sample_cr.tex --json
+```
+
+## Run The Chunker
+
+Parse a `.tex` file and print the generated chunks in a readable summary:
+
+```bash
+hybrid-rag-chunking tests/parsing/fixtures/sample_cr.tex
+```
+
+Print the generated chunks as JSON:
+
+```bash
+hybrid-rag-chunking tests/parsing/fixtures/sample_cr.tex --json
 ```
 
 ## Reading References

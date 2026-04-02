@@ -2,9 +2,14 @@ from hybrid_rag import BibliographicReference as RootBibliographicReference
 from hybrid_rag import DocumentNode as RootDocumentNode
 from hybrid_rag import ParsedDocument as RootParsedDocument
 from hybrid_rag import parse_document as root_parse_document
-from hybrid_rag.cli import _node_to_dict
-from hybrid_rag.domain import BibliographicReference, DocumentNode, NodeType, ParsedDocument
+from hybrid_rag.domain import (
+    BibliographicReference,
+    DocumentNode,
+    NodeType,
+    ParsedDocument,
+)
 from hybrid_rag.parsing import ParserFactory, parse_document
+from hybrid_rag.parsing.cli import _node_to_dict
 from hybrid_rag.parsing.parsers import LatexParser, PdfParser
 
 

@@ -19,17 +19,11 @@ def test_pdf_parser_placeholder_methods_raise_user_level_error(
     source = tmp_path / "report.pdf"
     source.write_text("placeholder", encoding="utf-8")
 
-    with pytest.raises(
-        ValueError, match="PDF parsing is not supported yet."
-    ):
+    with pytest.raises(ValueError, match="PDF parsing is not supported yet."):
         parser._load(source)
 
-    with pytest.raises(
-        ValueError, match="PDF parsing is not supported yet."
-    ):
+    with pytest.raises(ValueError, match="PDF parsing is not supported yet."):
         parser._extract_structure("content", source)
 
-    with pytest.raises(
-        ValueError, match="PDF parsing is not supported yet."
-    ):
+    with pytest.raises(ValueError, match="PDF parsing is not supported yet."):
         parser.parse(source)
