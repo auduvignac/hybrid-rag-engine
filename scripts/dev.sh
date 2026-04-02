@@ -13,13 +13,13 @@ setup_venv() {
   # This file is meant to be sourced so activation affects the caller shell.
   source venv/bin/activate || return 1
 
-  echo "pip install requirements"
+  echo "python -m pip install requirements"
   local requirement_found=0
   local requirement_file
   for requirement_file in requirements*.txt; do
     if test -f "${requirement_file}"; then
       requirement_found=1
-      pip install -r "${requirement_file}" || return 1
+      python -m pip install -r "${requirement_file}" || return 1
     fi
   done
 
@@ -27,8 +27,8 @@ setup_venv() {
     echo "No requirements*.txt files found. Skipping."
   fi
 
-  echo "pip install -e ."
-  pip install -e . || return 1
+  echo "python -m pip install -e ."
+  python -m pip install -e . || return 1
 }
 
 run_pytest() {
