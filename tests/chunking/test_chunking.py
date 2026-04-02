@@ -136,3 +136,38 @@ def test_document_node_chunker_preserves_depth_first_order_iteratively() -> None
     ]
     assert len({chunk.chunk_id for chunk in chunks}) == 4
     assert all(len(chunk.chunk_id) == 40 for chunk in chunks)
+
+
+def test_chunk_document_instantiates_default_chunker_per_call(monkeypatch) -> None:
+    instances: list[TrackingChunker] = []
+
+    class TrackingChunker(DocumentNodeChunker):
+        def __init__(self) -> None:
+            super().__init__()
+            instances.append(self)
+
+    document = ParsedDocument(
+        source_path="docs/CR_004.tex",
+        document_type="latex",
+        root_nodes=[
+            DocumentNode(
+                title="Only Section",
+                level=1,
+                content="Some text",
+                node_type=NodeType.SECTION,
+            )
+        ],
+    )
+
+    monkeypatch.setattr(
+        "hybrid_rag.chunking.service.DocumentNodeChunker",
+        TrackingChunker,
+    )
+
+    first_chunks = chunk_document(document)
+    second_chunks = chunk_document(document)
+
+    assert len(first_chunks) == 1
+    assert len(second_chunks) == 1
+    assert len(instances) == 2
+    assert instances[0] is not instances[1]
