@@ -103,7 +103,11 @@ def main(argv: list[str] | None = None) -> int:
         return exit_code
 
     if args.json:
-        print(json.dumps(_document_to_dict(document), indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                _document_to_dict(document), indent=2, ensure_ascii=False
+            )
+        )
     else:
         _print_summary(document)
 

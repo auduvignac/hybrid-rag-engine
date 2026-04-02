@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from hybrid_rag.cli_common import add_debug_argument, run_cli_action
 from hybrid_rag.chunking.service import chunk_document
+from hybrid_rag.cli_common import add_debug_argument, run_cli_action
 from hybrid_rag.domain.chunks import Chunk
 from hybrid_rag.parsing.service import parse_document
 
@@ -18,7 +18,9 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Parse a source file and display the resulting retrieval chunks."
     )
     parser.add_argument(
-        "source", type=Path, help="Path to the source document to parse and chunk."
+        "source",
+        type=Path,
+        help="Path to the source document to parse and chunk.",
     )
     parser.add_argument(
         "--json",
@@ -36,7 +38,9 @@ def _chunk_to_dict(chunk: Chunk) -> dict[str, Any]:
         "document_type": chunk.document_type,
         "title": chunk.title,
         "section_path": chunk.section_path,
-        "node_type": chunk.node_type.value if chunk.node_type is not None else None,
+        "node_type": (
+            chunk.node_type.value if chunk.node_type is not None else None
+        ),
         "text": chunk.text,
         "metadata": chunk.metadata,
     }
@@ -56,7 +60,9 @@ def _print_summary(chunks: list[Chunk]) -> None:
 
 def _print_chunk(chunk: Chunk) -> None:
     print(f"- {chunk.chunk_id}")
-    print(f"  node_type: {chunk.node_type.value if chunk.node_type else '<none>'}")
+    print(
+        f"  node_type: {chunk.node_type.value if chunk.node_type else '<none>'}"
+    )
     print(f"  title: {chunk.title or '<none>'}")
     print(f"  section_path: {' > '.join(chunk.section_path) or '<none>'}")
     if citations := chunk.metadata.get("citations", []):

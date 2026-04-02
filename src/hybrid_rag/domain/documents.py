@@ -44,7 +44,9 @@ class ParsedDocument:
     document_type: str
     title: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
-    bibliography: dict[str, BibliographicReference] = field(default_factory=dict)
+    bibliography: dict[str, BibliographicReference] = field(
+        default_factory=dict
+    )
     root_nodes: list[DocumentNode] = field(default_factory=list)
 
     def add_root_node(self, node: DocumentNode) -> None:

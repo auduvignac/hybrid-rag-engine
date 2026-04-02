@@ -23,7 +23,9 @@ class DocumentNodeChunker(BaseChunker):
     ) -> None:
         stack: list[tuple[DocumentNode, list[str], list[int]]] = [
             (root_node, [], [root_index])
-            for root_index, root_node in reversed(list(enumerate(document.root_nodes)))
+            for root_index, root_node in reversed(
+                list(enumerate(document.root_nodes))
+            )
         ]
 
         while stack:
@@ -52,5 +54,7 @@ class DocumentNodeChunker(BaseChunker):
 
             stack.extend(
                 (child, current_path, [*ordinal_path, child_index])
-                for child_index, child in reversed(list(enumerate(node.children)))
+                for child_index, child in reversed(
+                    list(enumerate(node.children))
+                )
             )

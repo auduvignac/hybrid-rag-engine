@@ -91,10 +91,14 @@ def test_chunk_document_uses_default_strategy() -> None:
 
     assert len(chunks) == 1
     assert chunks[0].section_path == ["Only Section"]
-    assert chunks[0].metadata["content_hash"] == build_content_hash("Some text")
+    assert chunks[0].metadata["content_hash"] == build_content_hash(
+        "Some text"
+    )
 
 
-def test_document_node_chunker_preserves_depth_first_order_iteratively() -> None:
+def test_document_node_chunker_preserves_depth_first_order_iteratively() -> (
+    None
+):
     first_child = DocumentNode(
         title="First Child",
         level=2,
@@ -138,7 +142,9 @@ def test_document_node_chunker_preserves_depth_first_order_iteratively() -> None
     assert all(len(chunk.chunk_id) == 40 for chunk in chunks)
 
 
-def test_chunk_document_instantiates_default_chunker_per_call(monkeypatch) -> None:
+def test_chunk_document_instantiates_default_chunker_per_call(
+    monkeypatch,
+) -> None:
     instances: list[TrackingChunker] = []
 
     class TrackingChunker(DocumentNodeChunker):

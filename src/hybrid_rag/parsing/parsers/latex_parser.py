@@ -18,7 +18,9 @@ _SECTIONING_PATTERN = re.compile(
     re.MULTILINE,
 )
 _BIB_RESOURCE_PATTERN = re.compile(r"\\addbibresource\{(?P<path>[^{}]+)\}")
-_BIB_ENTRY_HEADER_PATTERN = re.compile(r"@(?P<entry_type>\w+)\{(?P<key>[^,\s]+),")
+_BIB_ENTRY_HEADER_PATTERN = re.compile(
+    r"@(?P<entry_type>\w+)\{(?P<key>[^,\s]+),"
+)
 _CITATION_COMMANDS = ("footcite", "cite", "parentcite")
 _CITATION_COMMAND_PATTERN = "|".join(_CITATION_COMMANDS)
 _CITATION_PATTERN = re.compile(
@@ -148,7 +150,9 @@ class LatexParser(BaseParser):
 
         return document
 
-    def _extract_bibliography_paths(self, content: str, source: Path) -> list[str]:
+    def _extract_bibliography_paths(
+        self, content: str, source: Path
+    ) -> list[str]:
         bibliography_paths: list[str] = []
         for match in _BIB_RESOURCE_PATTERN.finditer(content):
             resolved_path = (source.parent / match.group("path")).resolve()
@@ -281,9 +285,9 @@ class LatexParser(BaseParser):
     def _normalize_bib_value(self, value: str) -> str:
         normalized = value.strip().rstrip(",").strip()
 
-        if (
-            len(normalized) >= 2
-            and ((normalized[0] == "{" and normalized[-1] == "}") or (normalized[0] == '"' and normalized[-1] == '"'))
+        if len(normalized) >= 2 and (
+            (normalized[0] == "{" and normalized[-1] == "}")
+            or (normalized[0] == '"' and normalized[-1] == '"')
         ):
             if inner := normalized[1:-1].strip():
                 normalized = inner
@@ -311,12 +315,16 @@ class LatexParser(BaseParser):
         stack.append(node)
 
     def _infer_document_title(self, content: str, source: Path) -> str | None:
-        if content is not None and (title := self._extract_command_argument(content, "title")):
+        if content is not None and (
+            title := self._extract_command_argument(content, "title")
+        ):
             return self._clean_inline_text(title)
 
         return source.stem or None
 
-    def _extract_command_argument(self, content: str, command: str) -> str | None:
+    def _extract_command_argument(
+        self, content: str, command: str
+    ) -> str | None:
         command_match = re.search(rf"\\{command}\{{", content)
         if command_match is None:
             return None
