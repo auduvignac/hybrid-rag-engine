@@ -42,16 +42,12 @@ setup_venv() {
   source venv/bin/activate || return 1
 
   echo "python -m pip install requirements"
-  local requirement_found=0
   local requirement_file
-  for requirement_file in requirements*.txt; do
-    if test -f "${requirement_file}"; then
-      requirement_found=1
+  if compgen -G "requirements*.txt" >/dev/null; then
+    for requirement_file in requirements*.txt; do
       python -m pip install -r "${requirement_file}" || return 1
-    fi
-  done
-
-  if test "${requirement_found}" -eq 0; then
+    done
+  else
     echo "No requirements*.txt files found. Skipping."
   fi
 
