@@ -1,7 +1,9 @@
-import hashlib
-import json
-
-from hybrid_rag.chunking import DocumentNodeChunker, chunk_document
+from hybrid_rag.chunking import (
+    DocumentNodeChunker,
+    build_chunk_id,
+    build_content_hash,
+    chunk_document,
+)
 from hybrid_rag.domain import Chunk, DocumentNode, NodeType, ParsedDocument
 
 
@@ -40,50 +42,34 @@ def test_document_node_chunker_builds_chunks_from_non_empty_nodes() -> None:
     assert all(isinstance(chunk, Chunk) for chunk in chunks)
 
     first_chunk = chunks[0]
-    assert first_chunk.chunk_id == hashlib.sha1(
-        json.dumps(
-            {
-                "source_path": "docs/CR_001.tex",
-                "document_type": "latex",
-                "section_path": ["Intro"],
-                "node_type": "section",
-                "ordinal_path": [0],
-            },
-            sort_keys=True,
-            ensure_ascii=False,
-        ).encode("utf-8")
-    ).hexdigest()
+    assert first_chunk.chunk_id == build_chunk_id(
+        document=document,
+        node=section,
+        section_path=["Intro"],
+        ordinal_path=[0],
+    )
     assert first_chunk.text == "Intro content"
     assert first_chunk.title == "Intro"
     assert first_chunk.section_path == ["Intro"]
     assert first_chunk.node_type == NodeType.SECTION
     assert first_chunk.metadata == {
         "sectioning_level": 2,
-        "content_hash": hashlib.sha1("Intro content".encode("utf-8")).hexdigest(),
+        "content_hash": build_content_hash("Intro content"),
     }
 
     second_chunk = chunks[1]
-    assert second_chunk.chunk_id == hashlib.sha1(
-        json.dumps(
-            {
-                "source_path": "docs/CR_001.tex",
-                "document_type": "latex",
-                "section_path": ["Intro", "Background"],
-                "node_type": "subsection",
-                "ordinal_path": [0, 0],
-            },
-            sort_keys=True,
-            ensure_ascii=False,
-        ).encode("utf-8")
-    ).hexdigest()
+    assert second_chunk.chunk_id == build_chunk_id(
+        document=document,
+        node=subsection,
+        section_path=["Intro", "Background"],
+        ordinal_path=[0, 0],
+    )
     assert second_chunk.text == "Background content"
     assert second_chunk.section_path == ["Intro", "Background"]
     assert second_chunk.node_type == NodeType.SUBSECTION
     assert second_chunk.metadata == {
         "citations": ["dupont2024"],
-        "content_hash": hashlib.sha1(
-            "Background content".encode("utf-8")
-        ).hexdigest(),
+        "content_hash": build_content_hash("Background content"),
     }
 
 
@@ -105,10 +91,7 @@ def test_chunk_document_uses_default_strategy() -> None:
 
     assert len(chunks) == 1
     assert chunks[0].section_path == ["Only Section"]
-    assert (
-        chunks[0].metadata["content_hash"]
-        == hashlib.sha1("Some text".encode("utf-8")).hexdigest()
-    )
+    assert chunks[0].metadata["content_hash"] == build_content_hash("Some text")
 
 
 def test_document_node_chunker_preserves_depth_first_order_iteratively() -> None:
